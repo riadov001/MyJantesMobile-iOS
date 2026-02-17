@@ -208,7 +208,8 @@ export const uploadApi = {
       type: type,
     };
     
-    formData.append("media", fileToUpload as any);
+    // @ts-ignore
+    formData.append("media", fileToUpload);
 
     return apiCall<{ objectPath: string }>("/api/upload", {
       method: "POST",
@@ -405,7 +406,8 @@ export const ocrApi = {
       type: type,
     };
     
-    formData.append("image", fileToScan as any);
+    // @ts-ignore
+    formData.append("image", fileToScan);
 
     return apiCall<any>("/api/ocr/scan", {
       method: "POST",
