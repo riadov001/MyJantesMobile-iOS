@@ -34,6 +34,9 @@ export default function ProfileScreen() {
   const [siret, setSiret] = useState(user?.siret || "");
   const [tvaNumber, setTvaNumber] = useState(user?.tvaNumber || "");
   const [companyAddress, setCompanyAddress] = useState(user?.companyAddress || "");
+  const [companyPostalCode, setCompanyPostalCode] = useState(user?.companyPostalCode || "");
+  const [companyCity, setCompanyCity] = useState(user?.companyCity || "");
+  const [companyCountry, setCompanyCountry] = useState(user?.companyCountry || "France");
 
   const isPro = user?.role === "client_professionnel";
 
@@ -51,6 +54,9 @@ export default function ProfileScreen() {
         siret: siret.trim() || null,
         tvaNumber: tvaNumber.trim() || null,
         companyAddress: companyAddress.trim() || null,
+        companyPostalCode: companyPostalCode.trim() || null,
+        companyCity: companyCity.trim() || null,
+        companyCountry: companyCountry.trim() || null,
       });
       await refreshUser();
       setEditing(false);
@@ -170,6 +176,9 @@ export default function ProfileScreen() {
             {renderField("SIRET", siret, setSiret, "document-text-outline", { maxLength: 14 })}
             {renderField("N° TVA", tvaNumber, setTvaNumber, "receipt-outline")}
             {renderField("Adresse société", companyAddress, setCompanyAddress, "location-outline")}
+            {renderField("CP société", companyPostalCode, setCompanyPostalCode, "navigate-outline", { keyboardType: "numeric", maxLength: 5 })}
+            {renderField("Ville société", companyCity, setCompanyCity, "business-outline")}
+            {renderField("Pays société", companyCountry, setCompanyCountry, "globe-outline")}
           </View>
         )}
 

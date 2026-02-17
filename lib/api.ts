@@ -132,6 +132,9 @@ export interface RegisterData {
   siret?: string;
   tvaNumber?: string;
   companyAddress?: string;
+  companyPostalCode?: string;
+  companyCity?: string;
+  companyCountry?: string;
 }
 
 export interface LoginData {

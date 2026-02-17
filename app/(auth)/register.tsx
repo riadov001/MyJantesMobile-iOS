@@ -36,6 +36,9 @@ export default function RegisterScreen() {
   const [siret, setSiret] = useState("");
   const [tvaNumber, setTvaNumber] = useState("");
   const [companyAddress, setCompanyAddress] = useState("");
+  const [companyPostalCode, setCompanyPostalCode] = useState("");
+  const [companyCity, setCompanyCity] = useState("");
+  const [companyCountry, setCompanyCountry] = useState("France");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -52,9 +55,19 @@ export default function RegisterScreen() {
       Alert.alert("Erreur", "Le mot de passe doit contenir au moins 6 caractères.");
       return;
     }
-    if (accountType === "client_professionnel" && !companyName.trim()) {
-      Alert.alert("Erreur", "Le nom de l'entreprise est obligatoire pour un compte professionnel.");
-      return;
+    if (accountType === "client_professionnel") {
+      if (!companyName.trim()) {
+        Alert.alert("Erreur", "Le nom de l'entreprise est obligatoire.");
+        return;
+      }
+      if (!siret.trim() || siret.length !== 14) {
+        Alert.alert("Erreur", "Le SIRET doit comporter 14 chiffres.");
+        return;
+      }
+      if (!tvaNumber.trim()) {
+        Alert.alert("Erreur", "Le numéro de TVA est obligatoire.");
+        return;
+      }
     }
 
     setLoading(true);
@@ -73,6 +86,9 @@ export default function RegisterScreen() {
         siret: siret.trim() || undefined,
         tvaNumber: tvaNumber.trim() || undefined,
         companyAddress: companyAddress.trim() || undefined,
+        companyPostalCode: companyPostalCode.trim() || undefined,
+        companyCity: companyCity.trim() || undefined,
+        companyCountry: companyCountry.trim() || undefined,
       });
       router.replace("/(main)");
     } catch (err: any) {
@@ -210,10 +226,31 @@ export default function RegisterScreen() {
               maxLength: 14,
             })}
             {renderInput("N° TVA", tvaNumber, setTvaNumber, "receipt-outline", {
-              placeholder: "N° TVA intracommunautaire",
+              required: true,
+              placeholder: "N° TVA intracommunautaire (ex: FR...)",
             })}
             {renderInput("Adresse société", companyAddress, setCompanyAddress, "location-outline", {
-              placeholder: "Adresse de la société",
+              required: true,
+              placeholder: "Adresse du siège social",
+            })}
+            <View style={styles.row}>
+              <View style={styles.halfInput}>
+                {renderInput("CP société", companyPostalCode, setCompanyPostalCode, "navigate-outline", {
+                  required: true,
+                  keyboardType: "numeric",
+                  maxLength: 5,
+                })}
+              </View>
+              <View style={styles.halfInput}>
+                {renderInput("Ville société", companyCity, setCompanyCity, "business-outline", { 
+                  required: true,
+                  placeholder: "Ville" 
+                })}
+              </View>
+            </View>
+            {renderInput("Pays société", companyCountry, setCompanyCountry, "globe-outline", {
+              required: true,
+              placeholder: "Pays",
             })}
           </View>
         )}
