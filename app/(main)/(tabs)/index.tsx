@@ -29,20 +29,27 @@ export default function HomeScreen() {
     queryFn: servicesApi.getAll,
   });
 
-  const { data: quotes = [], refetch: refetchQuotes } = useQuery({
+  const { data: quotesRaw = [], refetch: refetchQuotes } = useQuery({
     queryKey: ["quotes"],
     queryFn: quotesApi.getAll,
   });
 
-  const { data: invoices = [], refetch: refetchInvoices } = useQuery({
+  const quotes = Array.isArray(quotesRaw) ? quotesRaw : [];
+
+  const { data: invoicesRaw = [], refetch: refetchInvoices } = useQuery({
     queryKey: ["invoices"],
     queryFn: invoicesApi.getAll,
+    retry: 1,
   });
 
-  const { data: reservations = [], refetch: refetchReservations } = useQuery({
+  const { data: reservationsRaw = [], refetch: refetchReservations } = useQuery({
     queryKey: ["reservations"],
     queryFn: reservationsApi.getAll,
+    retry: 1,
   });
+
+  const invoices = Array.isArray(invoicesRaw) ? invoicesRaw : [];
+  const reservations = Array.isArray(reservationsRaw) ? reservationsRaw : [];
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -159,14 +166,14 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Nos services</Text>
-          <Text style={styles.sectionCount}>{services.length} disponibles</Text>
+          <Text style={styles.sectionCount}>{(Array.isArray(services) ? services : []).length} disponibles</Text>
         </View>
 
         {loadingServices ? (
           <ActivityIndicator size="small" color={Colors.primary} style={styles.loader} />
         ) : (
           <View style={styles.servicesGrid}>
-            {services.filter((s: Service) => s.isActive).map((service: Service) => (
+            {(Array.isArray(services) ? services : []).filter((s: Service) => s.isActive).map((service: Service) => (
               <Pressable
                 key={service.id}
                 style={({ pressed }) => [styles.serviceCard, pressed && styles.serviceCardPressed]}
@@ -176,9 +183,9 @@ export default function HomeScreen() {
                   <Ionicons name="construct-outline" size={22} color={Colors.primary} />
                 </View>
                 <Text style={styles.serviceName} numberOfLines={2}>
-                  {service.name.trim()}
+                  {(service.name || "").trim()}
                 </Text>
-                {parseFloat(service.basePrice) > 0 && (
+                {parseFloat(service.basePrice || "0") > 0 && (
                   <Text style={styles.servicePrice}>
                     à partir de {parseFloat(service.basePrice).toFixed(0)}€
                   </Text>

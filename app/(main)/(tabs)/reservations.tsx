@@ -92,10 +92,13 @@ export default function ReservationsScreen() {
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: reservations = [], isLoading, refetch } = useQuery({
+  const { data: reservationsRaw = [], isLoading, refetch } = useQuery({
     queryKey: ["reservations"],
     queryFn: reservationsApi.getAll,
+    retry: 1,
   });
+
+  const reservations = Array.isArray(reservationsRaw) ? reservationsRaw : [];
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

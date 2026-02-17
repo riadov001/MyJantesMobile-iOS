@@ -46,11 +46,12 @@ export default function QuoteDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const { data: allQuotes = [], isLoading } = useQuery({
+  const { data: allQuotesRaw = [], isLoading } = useQuery({
     queryKey: ["quotes"],
     queryFn: quotesApi.getAll,
   });
 
+  const allQuotes = Array.isArray(allQuotesRaw) ? allQuotesRaw : [];
   const quote = allQuotes.find((q) => q.id === id);
 
   if (isLoading) {

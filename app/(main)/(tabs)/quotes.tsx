@@ -98,10 +98,12 @@ export default function QuotesScreen() {
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: quotes = [], isLoading, refetch } = useQuery({
+  const { data: quotesRaw = [], isLoading, refetch } = useQuery({
     queryKey: ["quotes"],
     queryFn: quotesApi.getAll,
   });
+
+  const quotes = Array.isArray(quotesRaw) ? quotesRaw : [];
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -130,7 +132,7 @@ export default function QuotesScreen() {
         <ActivityIndicator size="large" color={Colors.primary} style={styles.loader} />
       ) : (
         <FlatList
-          data={quotes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())}
+          data={[...quotes].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <QuoteCard quote={item} />}
           contentContainerStyle={[

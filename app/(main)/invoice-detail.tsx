@@ -32,11 +32,13 @@ export default function InvoiceDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const { data: allInvoices = [], isLoading } = useQuery({
+  const { data: allInvoicesRaw = [], isLoading } = useQuery({
     queryKey: ["invoices"],
     queryFn: invoicesApi.getAll,
+    retry: 1,
   });
 
+  const allInvoices = Array.isArray(allInvoicesRaw) ? allInvoicesRaw : [];
   const invoice = allInvoices.find((inv) => inv.id === id);
 
   if (isLoading) {

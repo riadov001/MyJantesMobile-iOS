@@ -88,10 +88,13 @@ export default function InvoicesScreen() {
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: invoices = [], isLoading, refetch } = useQuery({
+  const { data: invoicesRaw = [], isLoading, refetch } = useQuery({
     queryKey: ["invoices"],
     queryFn: invoicesApi.getAll,
+    retry: 1,
   });
+
+  const invoices = Array.isArray(invoicesRaw) ? invoicesRaw : [];
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
