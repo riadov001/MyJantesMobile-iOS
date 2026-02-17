@@ -68,7 +68,7 @@ export default function RootLayout() {
           />
         </View>
         <View style={styles.versionBottom}>
-          <Text style={styles.versionTextSplash}>v1.3.6</Text>
+          <Text style={styles.versionTextSplash}>v1.0</Text>
         </View>
       </View>
     );

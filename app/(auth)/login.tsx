@@ -144,7 +144,7 @@ export default function LoginScreen() {
           </Pressable>
 
           <View style={styles.versionContainer}>
-            <Text style={styles.versionText}>v1.3.6</Text>
+            <Text style={styles.versionText}>v1.0</Text>
           </View>
         </View>
       </ScrollView>
