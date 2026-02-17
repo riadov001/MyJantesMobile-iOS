@@ -16,7 +16,15 @@ function NativeTabLayout() {
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="quotes">
         <Icon sf={{ default: "doc.text", selected: "doc.text.fill" }} />
-        <Label>Mes Devis</Label>
+        <Label>Devis</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="invoices">
+        <Icon sf={{ default: "doc.plaintext", selected: "doc.plaintext.fill" }} />
+        <Label>Factures</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="reservations">
+        <Icon sf={{ default: "calendar", selected: "calendar" }} />
+        <Label>RDV</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <Icon sf={{ default: "person", selected: "person.fill" }} />
@@ -70,8 +78,22 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="quotes"
         options={{
-          title: "Mes Devis",
+          title: "Devis",
           tabBarIcon: ({ color, size }) => <Ionicons name="document-text-outline" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="invoices"
+        options={{
+          title: "Factures",
+          tabBarIcon: ({ color, size }) => <Ionicons name="receipt-outline" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="reservations"
+        options={{
+          title: "RDV",
+          tabBarIcon: ({ color, size }) => <Ionicons name="calendar-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen

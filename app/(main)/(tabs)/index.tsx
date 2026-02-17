@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
-import { servicesApi, quotesApi, Service } from "@/lib/api";
+import { servicesApi, quotesApi, invoicesApi, reservationsApi, Service } from "@/lib/api";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
 
@@ -34,13 +34,32 @@ export default function HomeScreen() {
     queryFn: quotesApi.getAll,
   });
 
+  const { data: invoices = [], refetch: refetchInvoices } = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoicesApi.getAll,
+  });
+
+  const { data: reservations = [], refetch: refetchReservations } = useQuery({
+    queryKey: ["reservations"],
+    queryFn: reservationsApi.getAll,
+  });
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([refetchServices(), refetchQuotes()]);
+    await Promise.all([refetchServices(), refetchQuotes(), refetchInvoices(), refetchReservations()]);
     setRefreshing(false);
   }, []);
 
   const pendingQuotes = quotes.filter((q) => q.status === "pending" || q.status === "en_attente");
+  const acceptedQuotes = quotes.filter((q) => q.status === "accepted" || q.status === "accepté");
+  const unpaidInvoices = invoices.filter((i) => {
+    const s = i.status?.toLowerCase();
+    return s === "pending" || s === "en_attente" || s === "sent" || s === "envoyée" || s === "overdue" || s === "en_retard";
+  });
+  const upcomingReservations = reservations.filter((r) => {
+    const s = r.status?.toLowerCase();
+    return (s === "confirmed" || s === "confirmée" || s === "confirmé" || s === "pending" || s === "en_attente") && new Date(r.date) >= new Date();
+  });
   const greeting = user?.firstName ? `Bonjour ${user.firstName}` : "Bonjour";
 
   return (
@@ -86,25 +105,55 @@ export default function HomeScreen() {
           <Ionicons name="chevron-forward" size={24} color="rgba(255,255,255,0.7)" />
         </Pressable>
 
-        {pendingQuotes.length > 0 && (
+        <View style={styles.statsRow}>
+          <Pressable
+            style={[styles.statCard, { backgroundColor: Colors.pendingBg }]}
+            onPress={() => router.push("/(main)/(tabs)/quotes")}
+          >
+            <Ionicons name="time-outline" size={22} color={Colors.pending} />
+            <Text style={[styles.statNumber, { color: Colors.pending }]}>{pendingQuotes.length}</Text>
+            <Text style={styles.statLabel}>En attente</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.statCard, { backgroundColor: Colors.acceptedBg }]}
+            onPress={() => router.push("/(main)/(tabs)/quotes")}
+          >
+            <Ionicons name="checkmark-circle-outline" size={22} color={Colors.accepted} />
+            <Text style={[styles.statNumber, { color: Colors.accepted }]}>{acceptedQuotes.length}</Text>
+            <Text style={styles.statLabel}>Acceptés</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.statCard, { backgroundColor: Colors.surfaceSecondary }]}
+            onPress={() => router.push("/(main)/(tabs)/quotes")}
+          >
+            <Ionicons name="documents-outline" size={22} color={Colors.primary} />
+            <Text style={[styles.statNumber, { color: Colors.primary }]}>{quotes.length}</Text>
+            <Text style={styles.statLabel}>Devis</Text>
+          </Pressable>
+        </View>
+
+        {(unpaidInvoices.length > 0 || invoices.length > 0 || upcomingReservations.length > 0) && (
           <View style={styles.statsRow}>
-            <View style={[styles.statCard, { backgroundColor: Colors.pendingBg }]}>
-              <Ionicons name="time-outline" size={22} color={Colors.pending} />
-              <Text style={[styles.statNumber, { color: Colors.pending }]}>{pendingQuotes.length}</Text>
-              <Text style={styles.statLabel}>En attente</Text>
-            </View>
-            <View style={[styles.statCard, { backgroundColor: Colors.acceptedBg }]}>
-              <Ionicons name="checkmark-circle-outline" size={22} color={Colors.accepted} />
-              <Text style={[styles.statNumber, { color: Colors.accepted }]}>
-                {quotes.filter((q) => q.status === "accepted" || q.status === "accepté").length}
+            <Pressable
+              style={[styles.statCard, { backgroundColor: unpaidInvoices.length > 0 ? Colors.pendingBg : Colors.surfaceSecondary }]}
+              onPress={() => router.push("/(main)/(tabs)/invoices")}
+            >
+              <Ionicons name="receipt-outline" size={22} color={unpaidInvoices.length > 0 ? Colors.pending : Colors.textSecondary} />
+              <Text style={[styles.statNumber, { color: unpaidInvoices.length > 0 ? Colors.pending : Colors.textSecondary }]}>
+                {invoices.length}
               </Text>
-              <Text style={styles.statLabel}>Acceptés</Text>
-            </View>
-            <View style={[styles.statCard, { backgroundColor: Colors.surfaceSecondary }]}>
-              <Ionicons name="documents-outline" size={22} color={Colors.primary} />
-              <Text style={[styles.statNumber, { color: Colors.primary }]}>{quotes.length}</Text>
-              <Text style={styles.statLabel}>Total</Text>
-            </View>
+              <Text style={styles.statLabel}>Factures</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.statCard, { backgroundColor: upcomingReservations.length > 0 ? "#0F1D3D" : Colors.surfaceSecondary }]}
+              onPress={() => router.push("/(main)/(tabs)/reservations")}
+            >
+              <Ionicons name="calendar-outline" size={22} color={upcomingReservations.length > 0 ? "#3B82F6" : Colors.textSecondary} />
+              <Text style={[styles.statNumber, { color: upcomingReservations.length > 0 ? "#3B82F6" : Colors.textSecondary }]}>
+                {upcomingReservations.length}
+              </Text>
+              <Text style={styles.statLabel}>RDV à venir</Text>
+            </Pressable>
           </View>
         )}
 

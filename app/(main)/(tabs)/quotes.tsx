@@ -44,7 +44,10 @@ function QuoteCard({ quote }: { quote: Quote }) {
   });
 
   return (
-    <View style={styles.quoteCard}>
+    <Pressable
+      style={({ pressed }) => [styles.quoteCard, pressed && styles.quoteCardPressed]}
+      onPress={() => router.push({ pathname: "/(main)/quote-detail", params: { id: quote.id } })}
+    >
       <View style={styles.quoteHeader}>
         <View style={styles.quoteIdRow}>
           <Ionicons name="document-text" size={18} color={Colors.primary} />
@@ -75,13 +78,19 @@ function QuoteCard({ quote }: { quote: Quote }) {
         )}
       </View>
 
-      {quote.photos && quote.photos.length > 0 && (
-        <View style={styles.photosInfo}>
-          <Ionicons name="images-outline" size={14} color={Colors.textTertiary} />
-          <Text style={styles.photosText}>{quote.photos.length} photo(s)</Text>
+      <View style={styles.quoteFooter}>
+        {quote.photos && quote.photos.length > 0 && (
+          <View style={styles.photosInfo}>
+            <Ionicons name="images-outline" size={14} color={Colors.textTertiary} />
+            <Text style={styles.photosText}>{quote.photos.length} photo(s)</Text>
+          </View>
+        )}
+        <View style={styles.viewDetailRow}>
+          <Text style={styles.viewDetailText}>Voir détail</Text>
+          <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
         </View>
-      )}
-    </View>
+      </View>
+    </Pressable>
   );
 }
 
@@ -240,13 +249,31 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     flex: 1,
   },
+  quoteCardPressed: {
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  quoteFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+  },
+  viewDetailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  viewDetailText: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
+  },
   photosInfo: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    paddingTop: 4,
-    borderTopWidth: 1,
-    borderTopColor: Colors.borderLight,
   },
   photosText: {
     fontSize: 12,

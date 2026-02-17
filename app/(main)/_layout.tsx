@@ -6,6 +6,8 @@ export default function MainLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="new-quote" options={{ presentation: "modal", headerShown: false }} />
+      <Stack.Screen name="quote-detail" options={{ headerShown: false }} />
+      <Stack.Screen name="invoice-detail" options={{ headerShown: false }} />
     </Stack>
   );
 }
