@@ -203,7 +203,7 @@ export const uploadApi = {
     // In React Native, we need to handle the file object differently for FormData
     // using the 'any' cast for the object containing uri, name, and type
     const fileToUpload = {
-      uri: Platform.OS === "ios" ? uri.replace("file://", "") : uri,
+      uri: uri,
       name: filename,
       type: type,
     };
@@ -401,7 +401,7 @@ export const ocrApi = {
   scan: async (uri: string, filename: string, type: string) => {
     const formData = new FormData();
     const fileToScan = {
-      uri: Platform.OS === "ios" ? uri.replace("file://", "") : uri,
+      uri: uri,
       name: filename,
       type: type,
     };

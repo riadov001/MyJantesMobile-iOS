@@ -166,7 +166,7 @@ export default function NewQuoteScreen() {
       console.log("OCR Result:", ocrResult);
       const parsed = parseOcrResult(ocrResult);
 
-      const hasData = Object.values(parsed).some((v) => v.trim() !== "");
+      const hasData = Object.values(parsed).some((v) => v && v.toString().trim() !== "");
 
       if (hasData) {
         setOcrPreviewData(parsed);
@@ -335,7 +335,7 @@ export default function NewQuoteScreen() {
     { key: "puissanceFiscale", label: "Puissance fiscale (CV)", icon: "speedometer-outline", placeholder: "Ex: 7 CV" },
   ];
 
-  const filledFieldsCount = Object.values(vehicle).filter((v) => v.trim() !== "").length;
+  const filledFieldsCount = Object.values(vehicle).filter((v) => v && v.toString().trim() !== "").length;
 
   return (
     <View style={styles.container}>
