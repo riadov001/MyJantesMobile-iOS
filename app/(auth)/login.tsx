@@ -59,11 +59,13 @@ export default function LoginScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Image
-            source={require("@/assets/images/logo.png")}
-            style={styles.logo}
-            contentFit="contain"
-          />
+          <View style={styles.logoWrapper}>
+            <Image
+              source={require("@/assets/images/logo_rounded.png")}
+              style={styles.logo}
+              contentFit="cover"
+            />
+          </View>
           <Text style={styles.subtitle}>Connectez-vous à votre compte</Text>
         </View>
 
@@ -136,6 +138,10 @@ export default function LoginScreen() {
           >
             <Text style={styles.registerBtnText}>Créer un compte</Text>
           </Pressable>
+
+          <View style={styles.versionContainer}>
+            <Text style={styles.versionText}>v1.0.0</Text>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -153,10 +159,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 40,
   },
+  logoWrapper: {
+    width: 120,
+    height: 120,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 4,
+    marginBottom: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
   logo: {
-    width: 220,
-    height: 100,
-    marginBottom: 12,
+    width: "100%",
+    height: "100%",
+    borderRadius: 20,
   },
   subtitle: {
     fontSize: 15,
@@ -247,5 +268,15 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontSize: 16,
     fontFamily: "Inter_600SemiBold",
+  },
+  versionContainer: {
+    alignItems: "center",
+    marginTop: 24,
+    opacity: 0.5,
+  },
+  versionText: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
   },
 });

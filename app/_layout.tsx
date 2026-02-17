@@ -1,7 +1,9 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, Text } from "react-native";
+import { Image } from "expo-image";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from "@expo-google-fonts/inter";
@@ -34,6 +36,7 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  const [appReady, setAppReady] = useState(false);
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -43,11 +46,33 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) {
-      SplashScreen.hideAsync();
+      // Simulate a small delay for the splash screen
+      const timer = setTimeout(() => {
+        setAppReady(true);
+        SplashScreen.hideAsync();
+      }, 2000);
+      return () => clearTimeout(timer);
     }
   }, [fontsLoaded]);
 
   if (!fontsLoaded) return null;
+
+  if (!appReady) {
+    return (
+      <View style={styles.splashContainer}>
+        <View style={styles.logoWrapper}>
+          <Image
+            source={require("@/assets/images/logo_rounded.png")}
+            style={styles.splashLogo}
+            contentFit="cover"
+          />
+        </View>
+        <View style={styles.versionBottom}>
+          <Text style={styles.versionTextSplash}>v1.0.0</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <ErrorBoundary>
@@ -63,3 +88,40 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
+
+const styles = StyleSheet.create({
+  splashContainer: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logoWrapper: {
+    width: 160,
+    height: 160,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 32,
+    padding: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  splashLogo: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 26,
+  },
+  versionBottom: {
+    position: "absolute",
+    bottom: 40,
+    alignItems: "center",
+  },
+  versionTextSplash: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    opacity: 0.6,
+  },
+});
