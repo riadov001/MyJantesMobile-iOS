@@ -37,7 +37,7 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const [appReady, setAppReady] = useState(false);
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
@@ -45,17 +45,17 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded || fontError) {
       // Simulate a small delay for the splash screen
       const timer = setTimeout(() => {
         setAppReady(true);
-        SplashScreen.hideAsync();
-      }, 2000);
+        SplashScreen.hideAsync().catch(() => {});
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded && !fontError) return null;
 
   if (!appReady) {
     return (
