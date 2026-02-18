@@ -34,7 +34,7 @@ function getStatusInfo(status: string) {
   return { label: status || "Inconnu", color: Colors.textSecondary, bg: Colors.surfaceSecondary, icon: "help-outline" as const };
 }
 
-function QuoteCard({ quote }: { quote: Quote }) {
+function QuoteCard({ quote, index }: { quote: Quote; index: number }) {
   const statusInfo = getStatusInfo(quote.status);
   const date = new Date(quote.createdAt);
   const formattedDate = date.toLocaleDateString("fr-FR", {
@@ -51,7 +51,7 @@ function QuoteCard({ quote }: { quote: Quote }) {
       <View style={styles.quoteHeader}>
         <View style={styles.quoteIdRow}>
           <Ionicons name="document-text" size={18} color={Colors.primary} />
-          <Text style={styles.quoteId}>Devis #{quote.id.slice(0, 8)}</Text>
+          <Text style={styles.quoteId}>{quote.quoteNumber || `Devis #${(index + 1).toString().padStart(4, "0")}`}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
           <Ionicons name={statusInfo.icon} size={14} color={statusInfo.color} />
@@ -134,7 +134,7 @@ export default function QuotesScreen() {
         <FlatList
           data={[...quotes].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <QuoteCard quote={item} />}
+          renderItem={({ item, index }) => <QuoteCard quote={item} index={index} />}
           contentContainerStyle={[
             styles.listContent,
             { paddingBottom: Platform.OS === "web" ? 34 + 100 : insets.bottom + 100 },

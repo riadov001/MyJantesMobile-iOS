@@ -305,11 +305,7 @@ export default function NewQuoteScreen() {
       const quoteData = {
         services: selectedServices,
         notes: notes.trim() || undefined,
-        photos: photos.map((p) => ({
-          key: p.key,
-          type: "image/jpeg",
-          name: p.key.split("/").pop() || "photo.jpg",
-        })),
+        photos: photos.map((p) => p.key),
         vehicleInfo: Object.keys(vehicleData).length > 0 ? vehicleData : undefined,
         paymentMethod: "wire_transfer",
       };

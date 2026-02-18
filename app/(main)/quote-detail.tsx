@@ -118,7 +118,7 @@ export default function QuoteDetailScreen() {
             <Ionicons name={statusInfo.icon} size={20} color={statusInfo.color} />
             <Text style={[styles.statusTextLarge, { color: statusInfo.color }]}>{statusInfo.label}</Text>
           </View>
-          <Text style={styles.quoteNumber}>Devis #{quote.id.slice(0, 8).toUpperCase()}</Text>
+          <Text style={styles.quoteNumber}>{(quote as any).quoteNumber || `Devis #${quote.id.slice(0, 8).toUpperCase()}`}</Text>
           <Text style={styles.quoteDate}>{formattedDate}</Text>
         </View>
 

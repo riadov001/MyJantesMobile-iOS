@@ -135,6 +135,7 @@ export interface Service {
 
 export interface Quote {
   id: string;
+  quoteNumber: string | null;
   clientId: string;
   status: string;
   totalAmount: string | null;
@@ -144,6 +145,7 @@ export interface Quote {
   createdAt: string;
   updatedAt: string;
   services?: Service[];
+  vehicleInfo?: any;
 }
 
 export interface RegisterData {
@@ -495,10 +497,33 @@ export const ocrApi = {
       } as any);
     }
 
-    return apiCall<any>("/api/ocr/scan", {
+    const localServerBase = process.env.EXPO_PUBLIC_DOMAIN
+      ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
+      : API_BASE;
+
+    const res = await globalThis.fetch(`${localServerBase}/api/ocr/scan`, {
       method: "POST",
       body: formData,
-      isFormData: true,
     });
+
+    if (!res.ok) {
+      let errorMessage = `Erreur ${res.status}`;
+      try {
+        const text = await res.text();
+        try {
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {
+          if (text) errorMessage = text.substring(0, 200);
+        }
+      } catch {}
+      throw new Error(errorMessage);
+    }
+
+    try {
+      return await res.json();
+    } catch {
+      return {};
+    }
   },
 };

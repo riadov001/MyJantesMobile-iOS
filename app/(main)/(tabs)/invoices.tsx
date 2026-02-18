@@ -34,7 +34,7 @@ function getInvoiceStatusInfo(status: string) {
   return { label: status || "Inconnu", color: Colors.textSecondary, bg: Colors.surfaceSecondary, icon: "help-outline" as const };
 }
 
-function InvoiceCard({ invoice }: { invoice: Invoice }) {
+function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
   const statusInfo = getInvoiceStatusInfo(invoice.status);
   const date = new Date(invoice.createdAt);
   const formattedDate = date.toLocaleDateString("fr-FR", {
@@ -51,7 +51,7 @@ function InvoiceCard({ invoice }: { invoice: Invoice }) {
       <View style={styles.cardHeader}>
         <View style={styles.invoiceIdRow}>
           <Ionicons name="receipt-outline" size={18} color={Colors.primary} />
-          <Text style={styles.invoiceNumber}>{invoice.invoiceNumber || `#${invoice.id.slice(0, 8)}`}</Text>
+          <Text style={styles.invoiceNumber}>{invoice.invoiceNumber || `Facture #${(index + 1).toString().padStart(4, "0")}`}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
           <Ionicons name={statusInfo.icon} size={14} color={statusInfo.color} />
@@ -119,7 +119,7 @@ export default function InvoicesScreen() {
         <FlatList
           data={[...invoices].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <InvoiceCard invoice={item} />}
+          renderItem={({ item, index }) => <InvoiceCard invoice={item} index={index} />}
           contentContainerStyle={[
             styles.listContent,
             { paddingBottom: Platform.OS === "web" ? 34 + 100 : insets.bottom + 100 },

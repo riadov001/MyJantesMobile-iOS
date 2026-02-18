@@ -97,7 +97,7 @@ export default function InvoiceDetailScreen() {
             <Ionicons name={statusInfo.icon} size={20} color={statusInfo.color} />
             <Text style={[styles.statusTextLarge, { color: statusInfo.color }]}>{statusInfo.label}</Text>
           </View>
-          <Text style={styles.invoiceNumber}>{invoice.invoiceNumber || `Facture #${invoice.id.slice(0, 8)}`}</Text>
+          <Text style={styles.invoiceNumber}>{invoice.invoiceNumber || `Facture`}</Text>
           <Text style={styles.invoiceDate}>{createdDate}</Text>
         </View>
 
