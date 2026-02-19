@@ -73,7 +73,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cookie) {
         await storeToken("session_cookie", cookie);
       }
-      router.replace("/(main)/(tabs)");
+      // Use setTimeout to ensure the navigation happens after state update
+      setTimeout(() => {
+        router.replace("/(main)/(tabs)");
+      }, 100);
     } catch (error) {
       console.error("Login error:", error);
       throw error;

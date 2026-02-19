@@ -34,7 +34,6 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login({ email: email.trim(), password });
-      // The login function in auth-context already handles redirecting to /(main)
     } catch (err: any) {
       Alert.alert("Erreur de connexion", err.message || "Identifiants incorrects.");
     } finally {
