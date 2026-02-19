@@ -124,7 +124,8 @@ export default function InvoiceDetailScreen() {
   };
 
   const handleConsultExternal = async () => {
-    const url = `${API_BASE}/client/invoices/${invoice.id}`;
+    if (!viewToken) return;
+    const url = `${API_BASE}/public/invoices/${viewToken}`;
     try {
       await WebBrowser.openBrowserAsync(url);
     } catch {

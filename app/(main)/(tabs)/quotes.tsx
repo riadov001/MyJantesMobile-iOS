@@ -48,7 +48,9 @@ function QuoteCard({ quote, index }: { quote: Quote; index: number }) {
   });
 
   const handleConsultExternal = async () => {
-    const url = `${API_BASE}/client/quotes/${quote.id}`;
+    const viewToken = (quote as any).viewToken;
+    if (!viewToken) return;
+    const url = `${API_BASE}/public/quotes/${viewToken}`;
     try {
       await WebBrowser.openBrowserAsync(url);
     } catch {
