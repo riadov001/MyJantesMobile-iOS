@@ -280,6 +280,61 @@ export const reservationsApi = {
   getServices: (id: string) => apiCall<any[]>(`/api/reservations/${id}/services`),
 };
 
+export interface Notification {
+  id: string;
+  userId: string;
+  type: "quote" | "invoice" | "reservation" | "service" | "chat";
+  title: string;
+  message: string;
+  relatedId: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface ChatConversation {
+  id: string;
+  title: string;
+  createdById: string;
+  isArchived: boolean;
+  lastMessageAt: string;
+  createdAt: string;
+  updatedAt: string;
+  participants?: any[];
+  lastMessage?: ChatMessage;
+  unreadCount?: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  isEdited: boolean;
+  createdAt: string;
+  updatedAt: string;
+  sender?: { id: string; firstName: string; lastName: string; role: string };
+}
+
+export const notificationsApi = {
+  getAll: () => apiCall<Notification[]>("/api/notifications"),
+  markRead: (id: string) =>
+    apiCall("/api/notifications/" + id + "/read", { method: "PATCH" }),
+  markAllRead: () =>
+    apiCall("/api/notifications/read-all", { method: "POST" }),
+};
+
+export const chatApi = {
+  getConversations: () => apiCall<ChatConversation[]>("/api/chat/conversations"),
+  getMessages: (conversationId: string) =>
+    apiCall<ChatMessage[]>(`/api/chat/conversations/${conversationId}/messages`),
+  sendMessage: (conversationId: string, content: string) =>
+    apiCall<ChatMessage>(`/api/chat/conversations/${conversationId}/messages`, {
+      method: "POST",
+      body: { content },
+    }),
+  getUsers: () => apiCall<any[]>("/api/chat/users"),
+};
+
 export const uploadApi = {
   upload: async (uri: string, filename: string, type: string) => {
     const formData = new FormData();
