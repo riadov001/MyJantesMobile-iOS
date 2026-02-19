@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
-import { servicesApi, quotesApi, invoicesApi, reservationsApi, Service } from "@/lib/api";
+import { servicesApi, quotesApi, invoicesApi, reservationsApi, notificationsApi, Service } from "@/lib/api";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
 
@@ -53,6 +53,14 @@ export default function HomeScreen() {
   const invoices = Array.isArray(invoicesRaw) ? invoicesRaw : [];
   const reservations = Array.isArray(reservationsRaw) ? reservationsRaw : [];
 
+  const { data: notificationsRaw = [] } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: notificationsApi.getAll,
+    refetchInterval: 30000,
+  });
+  const notifList = Array.isArray(notificationsRaw) ? notificationsRaw : [];
+  const unreadCount = notifList.filter((n: any) => !n.isRead).length;
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([refetchServices(), refetchQuotes(), refetchInvoices(), refetchReservations()]);
@@ -87,10 +95,23 @@ export default function HomeScreen() {
         }
       >
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.greeting}>{greeting}</Text>
             <Text style={styles.welcomeText}>Bienvenue sur MyJantes</Text>
           </View>
+          <Pressable
+            style={styles.notifBtn}
+            onPress={() => router.push("/(main)/(tabs)/notifications")}
+          >
+            <Ionicons name="notifications-outline" size={24} color={Colors.text} />
+            {unreadCount > 0 && (
+              <View style={styles.notifBadge}>
+                <Text style={styles.notifBadgeText}>
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </Text>
+              </View>
+            )}
+          </Pressable>
           <Image
             source={require("@/assets/images/logo.png")}
             style={styles.headerLogo}
@@ -226,6 +247,30 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
     marginTop: 2,
+  },
+  notifBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 4,
+  },
+  notifBadge: {
+    position: "absolute",
+    top: 2,
+    right: 2,
+    backgroundColor: Colors.primary,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  notifBadgeText: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
   },
   headerLogo: {
     width: 90,

@@ -61,8 +61,12 @@ export default function SupportScreen() {
         [{ text: "OK", onPress: () => router.back() }]
       );
     } catch (err: any) {
-      console.error("DEBUG: Support error", err);
-      Alert.alert("Erreur", err.message || "Impossible d'envoyer le message.");
+      console.error("Support error:", err);
+      Alert.alert(
+        "Service temporairement indisponible",
+        "Le formulaire de contact rencontre un problème technique. Veuillez nous contacter directement par email à contact@myjantes.com ou par téléphone.",
+        [{ text: "Compris" }]
+      );
     } finally {
       setSending(false);
     }

@@ -39,6 +39,8 @@ export default function ProfileScreen() {
   const [companyCountry, setCompanyCountry] = useState(user?.companyCountry || "France");
 
   const isPro = user?.role === "client_professionnel";
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "superadmin";
+  const roleName = isAdmin ? "Administrateur" : isPro ? "Professionnel" : "Particulier";
 
   const handleSave = async () => {
     setSaving(true);
@@ -154,7 +156,7 @@ export default function ProfileScreen() {
               : user?.email}
           </Text>
           <View style={styles.roleBadge}>
-            <Text style={styles.roleText}>{isPro ? "Professionnel" : "Particulier"}</Text>
+            <Text style={styles.roleText}>{roleName}</Text>
           </View>
         </View>
 

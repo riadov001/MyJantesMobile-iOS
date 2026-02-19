@@ -36,7 +36,11 @@ export default function ForgotPasswordScreen() {
         [{ text: "OK", onPress: () => router.back() }]
       );
     } catch (err: any) {
-      Alert.alert("Erreur", err.message || "Une erreur est survenue.");
+      Alert.alert(
+        "Service temporairement indisponible",
+        "La réinitialisation du mot de passe est temporairement indisponible. Veuillez contacter le support à contact@myjantes.com pour une assistance.",
+        [{ text: "Compris" }]
+      );
     } finally {
       setLoading(false);
     }

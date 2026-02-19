@@ -95,10 +95,11 @@ export default function RegisterScreen() {
         companyCity: companyCity.trim() || undefined,
         companyCountry: companyCountry.trim() || undefined,
       });
-      router.replace("/(main)");
+      setTimeout(() => {
+        router.replace("/(main)/(tabs)" as any);
+      }, 50);
     } catch (err: any) {
       Alert.alert("Erreur", err.message || "Impossible de créer le compte.");
-    } finally {
       setLoading(false);
     }
   };

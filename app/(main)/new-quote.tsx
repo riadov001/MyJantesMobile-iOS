@@ -141,10 +141,6 @@ export default function NewQuoteScreen() {
       Alert.alert("Erreur", "Veuillez sélectionner au moins un service.");
       return;
     }
-    if (photos.length === 0) {
-      Alert.alert("Erreur", "Veuillez ajouter au moins 1 photo de vos jantes.");
-      return;
-    }
 
     setSubmitting(true);
     try {
@@ -194,7 +190,7 @@ export default function NewQuoteScreen() {
     }
   };
 
-    const canSubmit = selectedServices.length > 0 && photos.length > 0 && !submitting;
+    const canSubmit = selectedServices.length > 0 && !submitting;
     
     // Safety check for services data
     const safeServices = Array.isArray(services) ? services : [];
@@ -273,7 +269,7 @@ export default function NewQuoteScreen() {
           <View style={styles.sectionHeader}>
             <Ionicons name="camera-outline" size={20} color={Colors.primary} />
             <Text style={styles.sectionTitle}>
-              Photos de vos jantes <Text style={styles.required}>(min. 1)</Text>
+              Photos de vos jantes <Text style={styles.required}>(optionnel)</Text>
             </Text>
           </View>
 
@@ -313,7 +309,7 @@ export default function NewQuoteScreen() {
           </View>
 
           <Text style={[styles.photoHint, photos.length >= 1 && styles.photoHintOk]}>
-            {photos.length >= 1 ? `${photos.length} photo${photos.length > 1 ? "s" : ""} ajoutée${photos.length > 1 ? "s" : ""}` : `${photos.length}/1 photo minimum`}
+            {photos.length >= 1 ? `${photos.length} photo${photos.length > 1 ? "s" : ""} ajoutée${photos.length > 1 ? "s" : ""}` : "Ajoutez des photos pour un devis plus précis"}
           </Text>
         </View>
 
