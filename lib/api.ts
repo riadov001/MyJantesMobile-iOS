@@ -55,12 +55,15 @@ export async function apiCall<T = any>(
       credentials: "include" as const,
     });
   } else {
-    res = await expoFetch(url, {
+    const fetchOptions: any = {
       method,
       headers: fetchHeaders,
-      body: body ? JSON.stringify(body) : undefined,
       credentials: "include" as const,
-    });
+    };
+    if (body) {
+      fetchOptions.body = JSON.stringify(body);
+    }
+    res = await expoFetch(url, fetchOptions);
   }
 
   const setCookie = res.headers.get("set-cookie");

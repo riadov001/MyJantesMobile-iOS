@@ -55,7 +55,7 @@ export default function SupportScreen() {
       
       const result = await supportApi.contact({
         name: name.trim(),
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         category,
         subject: subject.trim(),
         message: message.trim(),
