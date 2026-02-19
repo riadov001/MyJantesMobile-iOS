@@ -21,16 +21,16 @@ const API_BASE = "https://appmyjantes.mytoolsgroup.eu";
 
 function getInvoiceStatusInfo(status: string) {
   const s = status?.toLowerCase() || "";
-  if (s === "paid" || s === "pay\u00e9e" || s === "pay\u00e9")
-    return { label: "Pay\u00e9e", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-circle-outline" as const };
+  if (s === "paid" || s === "payée" || s === "payé")
+    return { label: "Payée", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-circle-outline" as const };
   if (s === "pending" || s === "en_attente")
     return { label: "En attente", color: Colors.pending, bg: Colors.pendingBg, icon: "time-outline" as const };
   if (s === "overdue" || s === "en_retard")
     return { label: "En retard", color: Colors.rejected, bg: Colors.rejectedBg, icon: "alert-circle-outline" as const };
-  if (s === "sent" || s === "envoy\u00e9e" || s === "envoyee")
-    return { label: "Envoy\u00e9e", color: "#3B82F6", bg: "#0F1D3D", icon: "send-outline" as const };
-  if (s === "cancelled" || s === "annul\u00e9e" || s === "annulee")
-    return { label: "Annul\u00e9e", color: Colors.textTertiary, bg: Colors.surfaceSecondary, icon: "close-circle-outline" as const };
+  if (s === "sent" || s === "envoyée" || s === "envoyee")
+    return { label: "Envoyée", color: "#3B82F6", bg: "#0F1D3D", icon: "send-outline" as const };
+  if (s === "cancelled" || s === "annulée" || s === "annulee")
+    return { label: "Annulée", color: Colors.textTertiary, bg: Colors.surfaceSecondary, icon: "close-circle-outline" as const };
   if (s === "draft" || s === "brouillon")
     return { label: "Brouillon", color: Colors.textSecondary, bg: Colors.surfaceSecondary, icon: "create-outline" as const };
   return { label: status || "Inconnu", color: Colors.textSecondary, bg: Colors.surfaceSecondary, icon: "help-outline" as const };
@@ -98,19 +98,9 @@ export default function InvoiceDetailScreen() {
   const statusLower = invoice.status?.toLowerCase() || "";
   const isUnpaid = statusLower === "pending" || statusLower === "en_attente"
     || statusLower === "overdue" || statusLower === "en_retard"
-    || statusLower === "sent" || statusLower === "envoyee" || statusLower === "envoy\u00e9e";
+    || statusLower === "sent" || statusLower === "envoyee" || statusLower === "envoyée";
 
-  const publicUrl = viewToken ? `${API_BASE}/api/public/invoices/${viewToken}` : null;
   const pdfUrl = viewToken ? `${API_BASE}/api/public/invoices/${viewToken}/pdf` : null;
-
-  const handleConsultOnline = async () => {
-    if (!publicUrl) return;
-    try {
-      await WebBrowser.openBrowserAsync(publicUrl);
-    } catch {
-      Linking.openURL(publicUrl);
-    }
-  };
 
   const handleDownloadPdf = async () => {
     if (!pdfUrl) return;
@@ -141,7 +131,7 @@ export default function InvoiceDetailScreen() {
         <Pressable onPress={() => router.back()} style={styles.headerBtn}>
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>D\u00e9tail facture</Text>
+        <Text style={styles.headerTitle}>Détail facture</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -161,18 +151,52 @@ export default function InvoiceDetailScreen() {
           <Text style={styles.invoiceDate}>{createdDate}</Text>
         </View>
 
+        {invoiceItems.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="list-outline" size={18} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>Lignes de la facture</Text>
+            </View>
+            {invoiceItems.map((item: any, idx: number) => {
+              const qty = item.quantity ? parseFloat(item.quantity) : 1;
+              const unitPrice = item.unitPrice || item.price || item.priceHT || null;
+              const lineTotal = item.total || item.totalHT || (unitPrice ? (parseFloat(unitPrice) * qty).toString() : null);
+              return (
+                <View key={idx} style={styles.lineItemCard}>
+                  <Text style={styles.lineItemName}>{item.description || item.name || item.label || `Ligne ${idx + 1}`}</Text>
+                  <View style={styles.lineItemDetails}>
+                    {unitPrice && (
+                      <Text style={styles.lineItemMeta}>
+                        {parseFloat(unitPrice).toFixed(2)} € x {qty}
+                      </Text>
+                    )}
+                    {!unitPrice && qty > 1 && (
+                      <Text style={styles.lineItemMeta}>Qté : {qty}</Text>
+                    )}
+                    {lineTotal && (
+                      <Text style={styles.lineItemTotal}>
+                        {parseFloat(lineTotal).toFixed(2)} €
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
         <View style={styles.amountsCard}>
           <View style={styles.amountRow}>
             <Text style={styles.amountLabel}>Montant HT</Text>
-            <Text style={styles.amountHT}>{parseFloat(invoice.totalHT || "0").toFixed(2)} \u20ac</Text>
+            <Text style={styles.amountHT}>{parseFloat(invoice.totalHT || "0").toFixed(2)} €</Text>
           </View>
           <View style={styles.amountRow}>
             <Text style={styles.amountLabel}>TVA ({parseFloat(invoice.tvaRate || "20")}%)</Text>
-            <Text style={styles.amountTVA}>{parseFloat(invoice.tvaAmount || "0").toFixed(2)} \u20ac</Text>
+            <Text style={styles.amountTVA}>{parseFloat(invoice.tvaAmount || "0").toFixed(2)} €</Text>
           </View>
           <View style={[styles.amountRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total TTC</Text>
-            <Text style={styles.totalValue}>{parseFloat(invoice.totalTTC || "0").toFixed(2)} \u20ac</Text>
+            <Text style={styles.totalValue}>{parseFloat(invoice.totalTTC || "0").toFixed(2)} €</Text>
           </View>
         </View>
 
@@ -180,7 +204,7 @@ export default function InvoiceDetailScreen() {
           <View style={styles.infoCard}>
             <Ionicons name="hourglass-outline" size={18} color={Colors.pending} />
             <View>
-              <Text style={styles.infoCardLabel}>Date d'\u00e9ch\u00e9ance</Text>
+              <Text style={styles.infoCardLabel}>Date d'échéance</Text>
               <Text style={styles.infoCardValue}>
                 {new Date(invoice.dueDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
               </Text>
@@ -192,33 +216,11 @@ export default function InvoiceDetailScreen() {
           <View style={styles.infoCard}>
             <Ionicons name="checkmark-circle" size={18} color={Colors.accepted} />
             <View>
-              <Text style={styles.infoCardLabel}>Pay\u00e9e le</Text>
+              <Text style={styles.infoCardLabel}>Payée le</Text>
               <Text style={styles.infoCardValue}>
                 {new Date(invoice.paidAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
               </Text>
             </View>
-          </View>
-        )}
-
-        {invoiceItems.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="list-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>D\u00e9tail</Text>
-            </View>
-            {invoiceItems.map((item: any, idx: number) => (
-              <View key={idx} style={styles.itemRow}>
-                <View style={styles.itemInfo}>
-                  <Text style={styles.itemName}>{item.description || item.name || `Ligne ${idx + 1}`}</Text>
-                  {item.quantity && <Text style={styles.itemQty}>x{item.quantity}</Text>}
-                </View>
-                {(item.unitPrice || item.total) && (
-                  <Text style={styles.itemPrice}>
-                    {parseFloat(item.total || item.unitPrice || "0").toFixed(2)} \u20ac
-                  </Text>
-                )}
-              </View>
-            ))}
           </View>
         )}
 
@@ -241,17 +243,10 @@ export default function InvoiceDetailScreen() {
           )}
 
           {viewToken && (
-            <>
-              <Pressable style={styles.btnConsult} onPress={handleConsultOnline}>
-                <Ionicons name="globe-outline" size={18} color="#FFFFFF" />
-                <Text style={styles.btnConsultText}>Consulter en ligne</Text>
-              </Pressable>
-
-              <Pressable style={styles.btnPdf} onPress={handleDownloadPdf}>
-                <Ionicons name="document-outline" size={18} color="#3B82F6" />
-                <Text style={styles.btnPdfText}>T\u00e9l\u00e9charger PDF</Text>
-              </Pressable>
-            </>
+            <Pressable style={styles.btnPdf} onPress={handleDownloadPdf}>
+              <Ionicons name="document-outline" size={18} color="#3B82F6" />
+              <Text style={styles.btnPdfText}>Télécharger PDF</Text>
+            </Pressable>
           )}
         </View>
       </ScrollView>
@@ -291,6 +286,38 @@ const styles = StyleSheet.create({
   statusTextLarge: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   invoiceNumber: { fontSize: 18, fontFamily: "Inter_700Bold", color: Colors.text },
   invoiceDate: { fontSize: 13, fontFamily: "Inter_400Regular", color: Colors.textSecondary },
+  section: { marginBottom: 20 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: Colors.text },
+  lineItemCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  lineItemName: {
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+    color: Colors.text,
+    marginBottom: 6,
+  },
+  lineItemDetails: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  lineItemMeta: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+  },
+  lineItemTotal: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.primary,
+  },
   amountsCard: {
     backgroundColor: Colors.surface,
     borderRadius: 14,
@@ -328,24 +355,6 @@ const styles = StyleSheet.create({
   },
   infoCardLabel: { fontSize: 12, fontFamily: "Inter_400Regular", color: Colors.textSecondary },
   infoCardValue: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: Colors.text },
-  section: { marginBottom: 20 },
-  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
-  sectionTitle: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: Colors.text },
-  itemRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: Colors.surface,
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  itemInfo: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8 },
-  itemName: { fontSize: 14, fontFamily: "Inter_500Medium", color: Colors.text, flex: 1 },
-  itemQty: { fontSize: 13, fontFamily: "Inter_400Regular", color: Colors.textSecondary },
-  itemPrice: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: Colors.primary, marginLeft: 12 },
   notesText: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
@@ -375,20 +384,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   btnPayText: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
-  },
-  btnConsult: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: "#3B82F6",
-    borderRadius: 12,
-    paddingVertical: 14,
-  },
-  btnConsultText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
     color: "#FFFFFF",
