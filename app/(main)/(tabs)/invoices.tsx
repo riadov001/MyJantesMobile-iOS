@@ -8,11 +8,14 @@ import {
   RefreshControl,
   Platform,
   ActivityIndicator,
+  Linking,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
+import * as WebBrowser from "expo-web-browser";
 import { invoicesApi, Invoice } from "@/lib/api";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
@@ -34,6 +37,11 @@ function getInvoiceStatusInfo(status: string) {
   return { label: status || "Inconnu", color: Colors.textSecondary, bg: Colors.surfaceSecondary, icon: "help-outline" as const };
 }
 
+function isPayableStatus(status: string): boolean {
+  const s = status?.toLowerCase() || "";
+  return s === "pending" || s === "en_attente" || s === "overdue" || s === "en_retard" || s === "sent" || s === "envoyée";
+}
+
 function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
   const statusInfo = getInvoiceStatusInfo(invoice.status);
   const date = new Date(invoice.createdAt);
@@ -44,6 +52,20 @@ function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
   });
 
   const totalTTC = (invoice as any).totalIncludingTax || invoice.totalTTC || "0";
+  const hasPaymentLink = !!invoice.paymentLink && isPayableStatus(invoice.status);
+
+  const handlePayment = async () => {
+    if (!invoice.paymentLink) return;
+    try {
+      await WebBrowser.openBrowserAsync(invoice.paymentLink);
+    } catch {
+      try {
+        await Linking.openURL(invoice.paymentLink);
+      } catch {
+        Alert.alert("Erreur", "Impossible d'ouvrir le lien de paiement.");
+      }
+    }
+  };
 
   return (
     <Pressable
@@ -89,10 +111,23 @@ function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
             {parseFloat(totalTTC).toFixed(2)} €
           </Text>
         </View>
-        <View style={styles.viewDetailRow}>
-          <Text style={styles.viewDetailText}>Voir détails</Text>
-          <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
-        </View>
+        {hasPaymentLink ? (
+          <Pressable
+            style={({ pressed }) => [styles.payButton, pressed && styles.payButtonPressed]}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              handlePayment();
+            }}
+          >
+            <Ionicons name="card-outline" size={16} color="#fff" />
+            <Text style={styles.payButtonText}>Payer</Text>
+          </Pressable>
+        ) : (
+          <View style={styles.viewDetailRow}>
+            <Text style={styles.viewDetailText}>Voir détails</Text>
+            <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
+          </View>
+        )}
       </View>
     </Pressable>
   );
@@ -265,6 +300,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_500Medium",
     color: Colors.primary,
+  },
+  payButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  payButtonPressed: {
+    backgroundColor: Colors.primaryDark,
+  },
+  payButtonText: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    color: "#fff",
   },
   emptyContainer: {
     alignItems: "center",

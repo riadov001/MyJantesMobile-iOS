@@ -258,6 +258,7 @@ export interface Invoice {
   paidAt: string | null;
   items: any[];
   notes: string | null;
+  paymentLink?: string | null;
   createdAt: string;
   updatedAt: string;
 }
