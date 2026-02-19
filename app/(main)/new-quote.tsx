@@ -140,7 +140,7 @@ export default function NewQuoteScreen() {
       Alert.alert("Erreur", "Veuillez sélectionner au moins un service.");
       return;
     }
-    if (photos.length < 1) {
+    if (photos.length === 0) {
       Alert.alert("Erreur", "Veuillez ajouter au moins 1 photo de vos jantes.");
       return;
     }
@@ -171,7 +171,7 @@ export default function NewQuoteScreen() {
     }
   };
 
-  const canSubmit = selectedServices.length > 0 && photos.length >= 1 && !submitting;
+    const canSubmit = selectedServices.length > 0 && photos.length > 0 && !submitting;
 
   return (
     <View style={styles.container}>
