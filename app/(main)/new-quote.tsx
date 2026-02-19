@@ -79,9 +79,9 @@ export default function NewQuoteScreen() {
         try {
           const uploadResult = await uploadApi.upload(uri, filename, type);
           console.log("DEBUG: Upload result", JSON.stringify(uploadResult));
-          const photoKey = uploadResult?.objectPath || uploadResult?.key || uploadResult?.path || uploadResult?.url;
+          const photoKey = uploadResult?.id || uploadResult?.objectPath || uploadResult?.key || uploadResult?.path || uploadResult?.url;
           if (photoKey) {
-            newPhotos.push({ uri, key: photoKey });
+            newPhotos.push({ uri, key: String(photoKey) });
           } else {
             newPhotos.push({ uri, key: `upload_${Date.now()}_${idx}` });
           }
@@ -117,9 +117,9 @@ export default function NewQuoteScreen() {
       try {
         const uploadResult = await uploadApi.upload(uri, filename, type);
         console.log("Upload result for", filename, ":", uploadResult);
-        const photoKey = uploadResult?.objectPath || uploadResult?.key || uploadResult?.path || uploadResult?.url;
+        const photoKey = uploadResult?.id || uploadResult?.objectPath || uploadResult?.key || uploadResult?.path || uploadResult?.url;
         if (photoKey) {
-          setPhotos((prev) => [...prev, { uri, key: photoKey }]);
+          setPhotos((prev) => [...prev, { uri, key: String(photoKey) }]);
         } else {
           console.warn("Upload response without path:", JSON.stringify(uploadResult));
           setPhotos((prev) => [...prev, { uri, key: `upload_${Date.now()}` }]);
@@ -155,6 +155,7 @@ export default function NewQuoteScreen() {
         services: selectedServices,
         notes: notes.trim() || undefined,
         photos: photos.map((p) => p.key),
+        image_urls: photos.map((p) => p.key), // Backend might expect this
         paymentMethod: "wire_transfer",
       };
 

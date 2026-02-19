@@ -290,7 +290,7 @@ export const uploadApi = {
       } as any);
     }
 
-    return apiCall<{ objectPath: string; url?: string; key?: string; path?: string }>("/api/upload", {
+    return apiCall<{ objectPath: string; url?: string; key?: string; path?: string; id?: string }>("/api/upload", {
       method: "POST",
       body: formData,
       isFormData: true,
