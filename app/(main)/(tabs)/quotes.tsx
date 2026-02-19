@@ -13,9 +13,13 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
+import * as WebBrowser from "expo-web-browser";
+import * as Linking from "expo-linking";
 import { quotesApi, Quote } from "@/lib/api";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
+
+const API_BASE = "https://appmyjantes.mytoolsgroup.eu";
 
 function getStatusInfo(status: string) {
   const s = status?.toLowerCase() || "";
@@ -42,6 +46,15 @@ function QuoteCard({ quote, index }: { quote: Quote; index: number }) {
     month: "long",
     year: "numeric",
   });
+
+  const handleConsultExternal = async () => {
+    const url = `${API_BASE}/client/quotes/${quote.id}`;
+    try {
+      await WebBrowser.openBrowserAsync(url);
+    } catch {
+      Linking.openURL(url);
+    }
+  };
 
   return (
     <Pressable
@@ -79,12 +92,16 @@ function QuoteCard({ quote, index }: { quote: Quote; index: number }) {
       </View>
 
       <View style={styles.quoteFooter}>
-        {quote.photos && quote.photos.length > 0 && (
-          <View style={styles.photosInfo}>
-            <Ionicons name="images-outline" size={14} color={Colors.textTertiary} />
-            <Text style={styles.photosText}>{quote.photos.length} photo(s)</Text>
-          </View>
-        )}
+        <Pressable 
+          style={styles.externalLink} 
+          onPress={(e) => {
+            e.stopPropagation();
+            handleConsultExternal();
+          }}
+        >
+          <Ionicons name="eye-outline" size={14} color={Colors.primary} />
+          <Text style={styles.externalLinkText}>Détails complets</Text>
+        </Pressable>
         <View style={styles.viewDetailRow}>
           <Text style={styles.viewDetailText}>Voir détail</Text>
           <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
@@ -274,6 +291,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_500Medium",
     color: Colors.primary,
+  },
+  externalLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: Colors.surfaceSecondary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  externalLinkText: {
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
   },
   photosInfo: {
     flexDirection: "row",
