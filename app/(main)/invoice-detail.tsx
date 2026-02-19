@@ -123,6 +123,15 @@ export default function InvoiceDetailScreen() {
     }
   };
 
+  const handleConsultExternal = async () => {
+    const url = `${API_BASE}/client/invoices`;
+    try {
+      await WebBrowser.openBrowserAsync(url);
+    } catch {
+      Linking.openURL(url);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View
@@ -249,6 +258,11 @@ export default function InvoiceDetailScreen() {
         ) : null}
 
         <View style={styles.footerActions}>
+          <Pressable style={styles.btnExternal} onPress={handleConsultExternal}>
+            <Ionicons name="eye-outline" size={18} color={Colors.text} />
+            <Text style={styles.btnExternalText}>Consulter les détails complets</Text>
+          </Pressable>
+
           {isUnpaid && paymentLink && (
             <Pressable style={styles.btnPay} onPress={handlePayOnline}>
               <Ionicons name="card-outline" size={18} color="#FFFFFF" />
@@ -435,5 +449,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
     color: "#3B82F6",
+  },
+  btnExternal: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: Colors.surfaceSecondary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  btnExternalText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
   },
 });

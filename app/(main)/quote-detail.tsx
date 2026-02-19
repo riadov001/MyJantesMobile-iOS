@@ -147,6 +147,16 @@ export default function QuoteDetailScreen() {
     }
   };
 
+  const handleConsultExternal = async () => {
+    if (!viewToken) return;
+    const url = `${API_BASE}/client/quotes`;
+    try {
+      await WebBrowser.openBrowserAsync(url);
+    } catch {
+      Linking.openURL(url);
+    }
+  };
+
   const handleAccept = async () => {
     if (!viewToken) return;
     setAccepting(true);
@@ -360,10 +370,17 @@ export default function QuoteDetailScreen() {
 
         <View style={styles.footerActions}>
           {viewToken && (
-            <Pressable style={styles.btnPdf} onPress={handleDownloadPdf}>
-              <Ionicons name="document-outline" size={18} color="#3B82F6" />
-              <Text style={styles.btnPdfText}>Télécharger PDF</Text>
-            </Pressable>
+            <>
+              <Pressable style={styles.btnExternal} onPress={handleConsultExternal}>
+                <Ionicons name="eye-outline" size={18} color={Colors.text} />
+                <Text style={styles.btnExternalText}>Consulter les détails complets</Text>
+              </Pressable>
+              
+              <Pressable style={styles.btnPdf} onPress={handleDownloadPdf}>
+                <Ionicons name="document-outline" size={18} color="#3B82F6" />
+                <Text style={styles.btnPdfText}>Télécharger PDF</Text>
+              </Pressable>
+            </>
           )}
 
           {canRespond && (
@@ -694,6 +711,22 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
     color: "#3B82F6",
+  },
+  btnExternal: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: Colors.surfaceSecondary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  btnExternalText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
   },
   responseRow: {
     flexDirection: "row",

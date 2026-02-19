@@ -85,7 +85,8 @@ export default function SupportScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
+        scrollEnabled={true}
       >
         <View style={styles.field}>
           <Text style={styles.label}>Nom</Text>
