@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo, useRef, ReactNode } from "react";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { authApi, UserProfile, LoginData, RegisterData, setSessionCookie } from "./api";
+import { registerForPushNotificationsAsync, startNotificationPolling, stopNotificationPolling, addNotificationResponseListener } from "./push-notifications";
 
 interface AuthContextValue {
   user: UserProfile | null;
@@ -43,10 +44,36 @@ async function removeToken(key: string) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const notificationListenerRef = useRef<any>(null);
 
   useEffect(() => {
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    if (user && Platform.OS !== "web") {
+      registerForPushNotificationsAsync().catch(() => {});
+      startNotificationPolling(30000);
+
+      notificationListenerRef.current = addNotificationResponseListener((response) => {
+        const data = response.notification.request.content.data;
+        if (data?.type === "quote" && data?.relatedId) {
+          router.push({ pathname: "/(main)/quote-detail", params: { id: data.relatedId as string } });
+        } else if (data?.type === "invoice" && data?.relatedId) {
+          router.push({ pathname: "/(main)/invoice-detail", params: { id: data.relatedId as string } });
+        } else if (data?.type === "reservation" && data?.relatedId) {
+          router.push({ pathname: "/(main)/reservation-detail", params: { id: data.relatedId as string } });
+        }
+      });
+
+      return () => {
+        stopNotificationPolling();
+        if (notificationListenerRef.current) {
+          notificationListenerRef.current.remove();
+        }
+      };
+    }
+  }, [user]);
 
   const checkAuth = async () => {
     try {
@@ -92,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authApi.logout();
     } catch {}
+    stopNotificationPolling();
     setUser(null);
     await removeToken("session_cookie");
     setSessionCookie(null);
