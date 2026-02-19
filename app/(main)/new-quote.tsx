@@ -156,9 +156,11 @@ export default function NewQuoteScreen() {
         };
       });
 
+      // Formater les données selon ce que le backend attend probablement
       const quoteData = {
+        services: selectedServices, // Essayer "services" au lieu de "serviceIds"
         serviceIds: selectedServices,
-        notes: notes.trim() || undefined,
+        notes: notes.trim() || "",
         photos: photos.map((p) => p.key),
         items: items,
         totalAmount: items.reduce((sum, item) => sum + item.total, 0),
@@ -168,11 +170,8 @@ export default function NewQuoteScreen() {
 
       console.log("DEBUG: Sending quote", JSON.stringify(quoteData));
 
-      // Try with direct apiCall to bypass any potential issues in quotesApi.create
-      const result = await apiCall("/api/quotes", {
-        method: "POST",
-        body: quoteData,
-      });
+      // Utiliser quotesApi.create qui est déjà défini et typé
+      const result = await quotesApi.create(quoteData);
       console.log("DEBUG: Server response:", JSON.stringify(result));
 
       if (Platform.OS !== "web") {

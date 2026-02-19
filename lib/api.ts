@@ -14,11 +14,14 @@ interface ApiOptions {
 let sessionCookie: string | null = null;
 
 export function setSessionCookie(cookie: string | null) {
-  if (cookie && !cookie.includes("myjantes.sid") && !cookie.includes("connect.sid")) {
-    // If it's just the value, wrap it
-    sessionCookie = `myjantes.sid=${cookie}`;
+  if (cookie) {
+    if (cookie.includes("myjantes.sid") || cookie.includes("connect.sid")) {
+      sessionCookie = cookie.split(";")[0];
+    } else {
+      sessionCookie = `myjantes.sid=${cookie}`;
+    }
   } else {
-    sessionCookie = cookie;
+    sessionCookie = null;
   }
   console.log("DEBUG: Cookie set to", sessionCookie);
 }
