@@ -68,7 +68,7 @@ function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
           <View style={styles.detailRow}>
             <Ionicons name="hourglass-outline" size={15} color={Colors.textSecondary} />
             <Text style={styles.detailText}>
-              \u00c9ch\u00e9ance : {new Date(invoice.dueDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+              Échéance : {new Date(invoice.dueDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
             </Text>
           </View>
         )}

@@ -17,14 +17,14 @@ import Colors from "@/constants/colors";
 
 function getReservationStatusInfo(status: string) {
   const s = status?.toLowerCase() || "";
-  if (s === "confirmed" || s === "confirm\u00e9e" || s === "confirm\u00e9")
-    return { label: "Confirm\u00e9e", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-circle-outline" as const };
+  if (s === "confirmed" || s === "confirmée" || s === "confirmé")
+    return { label: "Confirmée", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-circle-outline" as const };
   if (s === "pending" || s === "en_attente")
     return { label: "En attente", color: Colors.pending, bg: Colors.pendingBg, icon: "time-outline" as const };
-  if (s === "cancelled" || s === "annul\u00e9e")
-    return { label: "Annul\u00e9e", color: Colors.rejected, bg: Colors.rejectedBg, icon: "close-circle-outline" as const };
-  if (s === "completed" || s === "termin\u00e9e" || s === "termin\u00e9")
-    return { label: "Termin\u00e9e", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-done-outline" as const };
+  if (s === "cancelled" || s === "annulée")
+    return { label: "Annulée", color: Colors.rejected, bg: Colors.rejectedBg, icon: "close-circle-outline" as const };
+  if (s === "completed" || s === "terminée" || s === "terminé")
+    return { label: "Terminée", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-done-outline" as const };
   if (s === "in_progress" || s === "en_cours")
     return { label: "En cours", color: "#3B82F6", bg: "#0F1D3D", icon: "hourglass-outline" as const };
   return { label: status || "Inconnu", color: Colors.textSecondary, bg: Colors.surfaceSecondary, icon: "help-outline" as const };
@@ -114,7 +114,7 @@ export default function ReservationDetailScreen() {
     return (
       <View style={[styles.container, styles.center]}>
         <Ionicons name="alert-circle-outline" size={48} color={Colors.textTertiary} />
-        <Text style={styles.errorText}>R\u00e9servation introuvable</Text>
+        <Text style={styles.errorText}>Réservation introuvable</Text>
         <Pressable onPress={() => router.back()} style={styles.backLink}>
           <Text style={styles.backLinkText}>Retour</Text>
         </Pressable>
@@ -131,10 +131,8 @@ export default function ReservationDetailScreen() {
 
   const formattedStart = formatDateTime(startDate);
   const formattedEnd = formatDateTime(endDate);
-  const startTime = formatTimeOnly(startDate);
   const endTime = formatTimeOnly(endDate);
   const startDateOnly = formatDateTime(startDate, false);
-  const endDateOnly = formatDateTime(endDate, false);
 
   const isSameDay = startDate && endDate &&
     new Date(startDate).toDateString() === new Date(endDate).toDateString();
@@ -168,7 +166,7 @@ export default function ReservationDetailScreen() {
         <Pressable onPress={() => router.back()} style={styles.headerBtn}>
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>D\u00e9tail r\u00e9servation</Text>
+        <Text style={styles.headerTitle}>Détail réservation</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -186,7 +184,7 @@ export default function ReservationDetailScreen() {
           </View>
           <Text style={styles.referenceText}>{displayRef}</Text>
           {createdDate && (
-            <Text style={styles.createdDate}>Cr\u00e9\u00e9e le {createdDate}</Text>
+            <Text style={styles.createdDate}>Créée le {createdDate}</Text>
           )}
         </View>
 
@@ -201,13 +199,13 @@ export default function ReservationDetailScreen() {
                 <View style={[styles.dateIconCircle, { backgroundColor: Colors.acceptedBg }]}>
                   <Ionicons name="play" size={14} color={Colors.accepted} />
                 </View>
-                <Text style={styles.dateBlockLabel}>D\u00e9but</Text>
+                <Text style={styles.dateBlockLabel}>Début</Text>
               </View>
               <Text style={styles.dateBlockValue}>
-                {formattedStart || startDateOnly || "Non d\u00e9fini"}
+                {formattedStart || startDateOnly || "Non défini"}
               </Text>
               {timeSlot && !formattedStart && (
-                <Text style={styles.timeSlotText}>Cr\u00e9neau : {timeSlot}</Text>
+                <Text style={styles.timeSlotText}>Créneau : {timeSlot}</Text>
               )}
             </View>
 
@@ -221,10 +219,10 @@ export default function ReservationDetailScreen() {
                     <View style={[styles.dateIconCircle, { backgroundColor: Colors.pendingBg }]}>
                       <Ionicons name="stop" size={14} color={Colors.pending} />
                     </View>
-                    <Text style={styles.dateBlockLabel}>Fin estim\u00e9e</Text>
+                    <Text style={styles.dateBlockLabel}>Fin estimée</Text>
                   </View>
                   <Text style={styles.dateBlockValue}>
-                    {isSameDay ? (endTime || "Non d\u00e9fini") : (formattedEnd || "Non d\u00e9fini")}
+                    {isSameDay ? (endTime || "Non défini") : (formattedEnd || "Non défini")}
                   </Text>
                 </View>
               </>
@@ -250,13 +248,13 @@ export default function ReservationDetailScreen() {
                 {linkedService.estimatedDuration && (
                   <View style={styles.serviceMeta}>
                     <Ionicons name="time-outline" size={13} color={Colors.textTertiary} />
-                    <Text style={styles.serviceMetaText}>Dur\u00e9e estim\u00e9e : {linkedService.estimatedDuration}</Text>
+                    <Text style={styles.serviceMetaText}>Durée estimée : {linkedService.estimatedDuration}</Text>
                   </View>
                 )}
                 {linkedService.basePrice && parseFloat(linkedService.basePrice) > 0 && (
                   <View style={styles.serviceMeta}>
                     <Ionicons name="pricetag-outline" size={13} color={Colors.textTertiary} />
-                    <Text style={styles.serviceMetaText}>\u00c0 partir de {parseFloat(linkedService.basePrice).toFixed(2)} \u20ac</Text>
+                    <Text style={styles.serviceMetaText}>À partir de {parseFloat(linkedService.basePrice).toFixed(2)} €</Text>
                   </View>
                 )}
               </View>
@@ -268,10 +266,10 @@ export default function ReservationDetailScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="settings-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>D\u00e9tails prestation</Text>
+              <Text style={styles.sectionTitle}>Détails prestation</Text>
             </View>
             {wheelCount && <InfoRow icon="apps-outline" label="Nombre de jantes" value={`${wheelCount}`} />}
-            {diameter && <InfoRow icon="resize-outline" label="Diam\u00e8tre" value={`${diameter}"`} />}
+            {diameter && <InfoRow icon="resize-outline" label="Diamètre" value={`${diameter}"`} />}
             {productDetails && (
               <View style={styles.productDetailsCard}>
                 <Text style={styles.productDetailsText}>{productDetails}</Text>
@@ -289,15 +287,15 @@ export default function ReservationDetailScreen() {
             <View style={styles.priceCard}>
               <View style={styles.priceRow}>
                 <Text style={styles.priceLabel}>Prix HT</Text>
-                <Text style={styles.priceValue}>{priceHTNum.toFixed(2)} \u20ac</Text>
+                <Text style={styles.priceValue}>{priceHTNum.toFixed(2)} €</Text>
               </View>
               <View style={styles.priceRow}>
                 <Text style={styles.priceLabel}>TVA ({parseFloat(taxRate)}%)</Text>
-                <Text style={styles.priceValue}>{taxAmountNum.toFixed(2)} \u20ac</Text>
+                <Text style={styles.priceValue}>{taxAmountNum.toFixed(2)} €</Text>
               </View>
               <View style={[styles.priceRow, styles.totalRow]}>
                 <Text style={styles.totalLabel}>Total TTC</Text>
-                <Text style={styles.totalValue}>{totalTTC.toFixed(2)} \u20ac</Text>
+                <Text style={styles.totalValue}>{totalTTC.toFixed(2)} €</Text>
               </View>
             </View>
           </View>
@@ -307,18 +305,18 @@ export default function ReservationDetailScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="car-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>V\u00e9hicule</Text>
+              <Text style={styles.sectionTitle}>Véhicule</Text>
             </View>
             {(vehicleInfo.marque || vehicleInfo.brand || vehicleInfo.make) && (
               <InfoRow icon="car-outline" label="Marque" value={vehicleInfo.marque || vehicleInfo.brand || vehicleInfo.make} />
             )}
             {(vehicleInfo.modele || vehicleInfo.model) && (
-              <InfoRow icon="car-sport-outline" label="Mod\u00e8le" value={vehicleInfo.modele || vehicleInfo.model} />
+              <InfoRow icon="car-sport-outline" label="Modèle" value={vehicleInfo.modele || vehicleInfo.model} />
             )}
             {(vehicleInfo.immatriculation || vehicleInfo.plate || vehicleInfo.registration) && (
               <InfoRow icon="card-outline" label="Immatriculation" value={vehicleInfo.immatriculation || vehicleInfo.plate || vehicleInfo.registration} />
             )}
-            {vehicleInfo.annee && <InfoRow icon="calendar-outline" label="Ann\u00e9e" value={vehicleInfo.annee} />}
+            {vehicleInfo.annee && <InfoRow icon="calendar-outline" label="Année" value={vehicleInfo.annee} />}
             {vehicleInfo.vin && <InfoRow icon="barcode-outline" label="VIN" value={vehicleInfo.vin} />}
             {vehicleInfo.couleur && <InfoRow icon="color-palette-outline" label="Couleur" value={vehicleInfo.couleur} />}
           </View>

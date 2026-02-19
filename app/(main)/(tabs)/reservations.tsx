@@ -98,7 +98,7 @@ function ReservationCard({ reservation }: { reservation: Reservation }) {
       <View style={styles.cardFooter}>
         <View style={{ flex: 1 }} />
         <View style={styles.viewDetailRow}>
-          <Text style={styles.viewDetailText}>Voir d\u00e9tails</Text>
+          <Text style={styles.viewDetailText}>Voir détails</Text>
           <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
         </View>
       </View>
