@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -16,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Colors from "@/constants/colors";
 import { useAuth } from "@/lib/auth-context";
 import { supportApi, SupportContactData } from "@/lib/api";
+import { useCustomAlert } from "@/components/CustomAlert";
 
 const CATEGORIES = [
   "Question générale",
@@ -27,6 +27,7 @@ const CATEGORIES = [
 
 export default function SupportScreen() {
   const { user } = useAuth();
+  const { showAlert, AlertComponent } = useCustomAlert();
 
   const [name, setName] = useState(
     user ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() : ""
@@ -51,14 +52,19 @@ export default function SupportScreen() {
         message: message.trim(),
       };
       await supportApi.contact(data);
-      Alert.alert("Message envoyé", "Votre message a bien été envoyé. Nous vous répondrons dans les plus brefs délais.", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      showAlert({
+        type: "success",
+        title: "Message envoyé",
+        message: "Votre message a bien été envoyé. Nous vous répondrons dans les plus brefs délais.",
+        buttons: [{ text: "OK", style: "primary", onPress: () => router.back() }],
+      });
     } catch (err: any) {
-      Alert.alert(
-        "Erreur",
-        err?.message || "Une erreur est survenue. Veuillez réessayer plus tard."
-      );
+      showAlert({
+        type: "error",
+        title: "Erreur",
+        message: err?.message || "Une erreur est survenue. Veuillez réessayer plus tard.",
+        buttons: [{ text: "OK", style: "primary" }],
+      });
     } finally {
       setLoading(false);
     }
@@ -80,13 +86,14 @@ export default function SupportScreen() {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={true}
+          bounces={true}
         >
           <View style={styles.field}>
             <Text style={styles.label}>Nom</Text>
@@ -178,6 +185,7 @@ export default function SupportScreen() {
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
+      {AlertComponent}
     </View>
   );
 }
@@ -216,7 +224,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 40,
+    paddingBottom: 120,
   },
   field: {
     marginBottom: 18,
