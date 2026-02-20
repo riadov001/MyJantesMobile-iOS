@@ -96,3 +96,6 @@ lib/
 - Feb 2026: Formulaire support intégré en interne (plus de redirection PWA)
 - Feb 2026: Liens de paiement affichés sur factures en attente (paymentLink)
 - Feb 2026: Push notifications activées (expo-notifications, polling 30s, deep linking)
+- Feb 2026: CustomAlert component replaces all native Alert.alert (glassmorphism dark theme)
+- Feb 2026: AI Chatbot screen added (app/(main)/chatbot.tsx) using /api/ai/assistant endpoint
+- Feb 2026: FloatingSupport updated with chatbot button (sparkles icon)
