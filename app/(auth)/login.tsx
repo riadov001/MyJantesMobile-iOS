@@ -5,7 +5,6 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -17,10 +16,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/lib/auth-context";
 import Colors from "@/constants/colors";
+import { useCustomAlert } from "@/components/CustomAlert";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { login } = useAuth();
+  const { showAlert, AlertComponent } = useCustomAlert();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +29,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+      showAlert({ type: 'error', title: 'Erreur', message: 'Veuillez remplir tous les champs.', buttons: [{ text: 'OK', style: 'primary' }] });
       return;
     }
     setLoading(true);
@@ -38,7 +39,7 @@ export default function LoginScreen() {
         router.replace("/(main)/(tabs)" as any);
       }, 50);
     } catch (err: any) {
-      Alert.alert("Erreur de connexion", err.message || "Identifiants incorrects.");
+      showAlert({ type: 'error', title: 'Erreur de connexion', message: err.message || 'Identifiants incorrects.', buttons: [{ text: 'OK', style: 'primary' }] });
       setLoading(false);
     }
   };
@@ -149,6 +150,7 @@ export default function LoginScreen() {
           </View>
         </View>
       </ScrollView>
+      {AlertComponent}
     </KeyboardAvoidingView>
   );
 }

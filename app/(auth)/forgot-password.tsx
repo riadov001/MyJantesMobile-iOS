@@ -5,7 +5,6 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -16,31 +15,35 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { authApi } from "@/lib/api";
 import Colors from "@/constants/colors";
+import { useCustomAlert } from "@/components/CustomAlert";
 
 export default function ForgotPasswordScreen() {
   const insets = useSafeAreaInsets();
+  const { showAlert, AlertComponent } = useCustomAlert();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleReset = async () => {
     if (!email.trim()) {
-      Alert.alert("Erreur", "Veuillez saisir votre adresse email.");
+      showAlert({ type: 'error', title: 'Erreur', message: 'Veuillez saisir votre adresse email.', buttons: [{ text: 'OK', style: 'primary' }] });
       return;
     }
     setLoading(true);
     try {
       await authApi.forgotPassword(email.trim());
-      Alert.alert(
-        "Email envoyé",
-        "Si un compte est associé à cet email, vous recevrez des instructions pour réinitialiser votre mot de passe.",
-        [{ text: "OK", onPress: () => router.back() }]
-      );
+      showAlert({
+        type: 'success',
+        title: 'Email envoyé',
+        message: 'Si un compte est associé à cet email, vous recevrez des instructions pour réinitialiser votre mot de passe.',
+        buttons: [{ text: 'OK', onPress: () => router.back(), style: 'primary' }],
+      });
     } catch (err: any) {
-      Alert.alert(
-        "Service temporairement indisponible",
-        "La réinitialisation du mot de passe est temporairement indisponible. Veuillez contacter le support à contact@myjantes.com pour une assistance.",
-        [{ text: "Compris" }]
-      );
+      showAlert({
+        type: 'warning',
+        title: 'Service temporairement indisponible',
+        message: 'La réinitialisation du mot de passe est temporairement indisponible. Veuillez contacter le support à contact@myjantes.com pour une assistance.',
+        buttons: [{ text: 'Compris', style: 'primary' }],
+      });
     } finally {
       setLoading(false);
     }
@@ -102,6 +105,7 @@ export default function ForgotPasswordScreen() {
           )}
         </Pressable>
       </ScrollView>
+      {AlertComponent}
     </KeyboardAvoidingView>
   );
 }

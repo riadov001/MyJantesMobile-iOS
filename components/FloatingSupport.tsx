@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet, Platform } from "react-native";
+import { Pressable, StyleSheet, Platform, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -7,20 +7,36 @@ import Colors from "@/constants/colors";
 
 export function FloatingSupport() {
   const insets = useSafeAreaInsets();
+  const baseBottom = Platform.OS === "web" ? 34 + 70 : insets.bottom + 70;
 
   return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.fab,
-        {
-          bottom: Platform.OS === "web" ? 34 + 70 : insets.bottom + 70,
-        },
-        pressed && styles.fabPressed,
-      ]}
-      onPress={() => router.push("/support")}
-    >
-      <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
-    </Pressable>
+    <View style={styles.fabGroup} pointerEvents="box-none">
+      <Pressable
+        style={({ pressed }) => [
+          styles.fab,
+          {
+            bottom: baseBottom,
+          },
+          pressed && styles.fabPressed,
+        ]}
+        onPress={() => router.push("/support")}
+      >
+        <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
+      </Pressable>
+      <Pressable
+        style={({ pressed }) => [
+          styles.fab,
+          styles.fabChatbot,
+          {
+            bottom: baseBottom + 62,
+          },
+          pressed && styles.fabChatbotPressed,
+        ]}
+        onPress={() => router.push("/(main)/chatbot")}
+      >
+        <Ionicons name="sparkles" size={22} color="#fff" />
+      </Pressable>
+    </View>
   );
 }
 
@@ -43,6 +59,19 @@ const styles = StyleSheet.create({
   },
   fabPressed: {
     backgroundColor: Colors.primaryDark,
+    transform: [{ scale: 0.95 }],
+  },
+  fabGroup: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 100,
+  },
+  fabChatbot: {
+    backgroundColor: Colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  fabChatbotPressed: {
+    backgroundColor: Colors.surfaceSecondary,
     transform: [{ scale: 0.95 }],
   },
 });

@@ -7,7 +7,6 @@ import {
   Platform,
   ActivityIndicator,
   Pressable,
-  Alert,
 } from "react-native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -18,6 +17,7 @@ import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { quotesApi, apiCall, Quote } from "@/lib/api";
 import Colors from "@/constants/colors";
+import { useCustomAlert } from "@/components/CustomAlert";
 
 const API_BASE = "https://appmyjantes.mytoolsgroup.eu";
 
@@ -79,6 +79,7 @@ export default function QuoteDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
+  const { showAlert, AlertComponent } = useCustomAlert();
   const [accepting, setAccepting] = useState(false);
   const [rejecting, setRejecting] = useState(false);
 
@@ -163,9 +164,9 @@ export default function QuoteDetailScreen() {
     try {
       await apiCall(`/api/public/quotes/${viewToken}/accept`, { method: "POST" });
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
-      Alert.alert("Devis accepté", "Le devis a bien été accepté.");
+      showAlert({ type: 'success', title: 'Devis accepté', message: 'Le devis a bien été accepté.', buttons: [{ text: 'OK', style: 'primary' }] });
     } catch (err: any) {
-      Alert.alert("Erreur", err?.message || "Impossible d'accepter le devis.");
+      showAlert({ type: 'error', title: 'Erreur', message: err?.message || "Impossible d'accepter le devis.", buttons: [{ text: 'OK', style: 'primary' }] });
     } finally {
       setAccepting(false);
     }
@@ -173,29 +174,30 @@ export default function QuoteDetailScreen() {
 
   const handleReject = async () => {
     if (!viewToken) return;
-    Alert.alert(
-      "Refuser le devis",
-      "Êtes-vous sûr de vouloir refuser ce devis ?",
-      [
-        { text: "Annuler", style: "cancel" },
+    showAlert({
+      type: 'warning',
+      title: 'Refuser le devis',
+      message: 'Êtes-vous sûr de vouloir refuser ce devis ?',
+      buttons: [
+        { text: 'Annuler' },
         {
-          text: "Refuser",
-          style: "destructive",
+          text: 'Refuser',
+          style: 'primary',
           onPress: async () => {
             setRejecting(true);
             try {
               await apiCall(`/api/public/quotes/${viewToken}/reject`, { method: "POST" });
               queryClient.invalidateQueries({ queryKey: ["quotes"] });
-              Alert.alert("Devis refusé", "Le devis a bien été refusé.");
+              showAlert({ type: 'success', title: 'Devis refusé', message: 'Le devis a bien été refusé.', buttons: [{ text: 'OK', style: 'primary' }] });
             } catch (err: any) {
-              Alert.alert("Erreur", err?.message || "Impossible de refuser le devis.");
+              showAlert({ type: 'error', title: 'Erreur', message: err?.message || "Impossible de refuser le devis.", buttons: [{ text: 'OK', style: 'primary' }] });
             } finally {
               setRejecting(false);
             }
           },
         },
-      ]
-    );
+      ],
+    });
   };
 
   const formattedExpiry = expiryDate
@@ -414,6 +416,7 @@ export default function QuoteDetailScreen() {
           )}
         </View>
       </ScrollView>
+      {AlertComponent}
     </View>
   );
 }

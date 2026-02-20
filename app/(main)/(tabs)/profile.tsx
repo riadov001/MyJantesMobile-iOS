@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  Alert,
   ActivityIndicator,
   Platform,
 } from "react-native";
@@ -17,10 +16,12 @@ import { useAuth } from "@/lib/auth-context";
 import { authApi } from "@/lib/api";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
+import { useCustomAlert } from "@/components/CustomAlert";
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, refreshUser, logout } = useAuth();
+  const { showAlert, AlertComponent } = useCustomAlert();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -62,26 +63,24 @@ export default function ProfileScreen() {
       });
       await refreshUser();
       setEditing(false);
-      Alert.alert("Succès", "Profil mis à jour avec succès.");
+      showAlert({ type: 'success', title: 'Succès', message: 'Profil mis à jour avec succès.', buttons: [{ text: 'OK', style: 'primary' }] });
     } catch (err: any) {
-      Alert.alert("Erreur", err.message || "Impossible de mettre à jour le profil.");
+      showAlert({ type: 'error', title: 'Erreur', message: err.message || 'Impossible de mettre à jour le profil.', buttons: [{ text: 'OK', style: 'primary' }] });
     } finally {
       setSaving(false);
     }
   };
 
   const handleLogout = () => {
-    Alert.alert("Déconnexion", "Voulez-vous vous déconnecter ?", [
-      { text: "Annuler", style: "cancel" },
-      {
-        text: "Déconnexion",
-        style: "destructive",
-        onPress: async () => {
-          await logout();
-          router.replace("/(auth)/login");
-        },
-      },
-    ]);
+    showAlert({
+      type: 'warning',
+      title: 'Déconnexion',
+      message: 'Voulez-vous vous déconnecter ?',
+      buttons: [
+        { text: 'Annuler' },
+        { text: 'Déconnexion', style: 'primary', onPress: async () => { await logout(); router.replace("/(auth)/login"); } },
+      ],
+    });
   };
 
   const renderField = (
@@ -198,6 +197,7 @@ export default function ProfileScreen() {
           <Text style={styles.logoutBtnText}>Déconnexion</Text>
         </Pressable>
       </ScrollView>
+      {AlertComponent}
       <FloatingSupport />
     </View>
   );

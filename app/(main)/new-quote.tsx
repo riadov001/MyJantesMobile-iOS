@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  Alert,
   ActivityIndicator,
   Platform,
 } from "react-native";
@@ -20,6 +19,7 @@ import { servicesApi, uploadApi, Service, apiCall } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import Colors from "@/constants/colors";
 import * as Haptics from "expo-haptics";
+import { useCustomAlert } from "@/components/CustomAlert";
 
 interface UploadedPhoto {
   uri: string;
@@ -30,6 +30,7 @@ export default function NewQuoteScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ serviceId?: string }>();
   const { user } = useAuth();
+  const { showAlert, AlertComponent } = useCustomAlert();
 
   const [selectedServices, setSelectedServices] = useState<string[]>(
     params.serviceId ? [params.serviceId] : []
@@ -56,7 +57,7 @@ export default function NewQuoteScreen() {
   const pickImages = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permission requise", "Veuillez autoriser l'accès à votre galerie.");
+      showAlert({ type: 'warning', title: 'Permission requise', message: 'Veuillez autoriser l\'accès à votre galerie.', buttons: [{ text: 'OK', style: 'primary' }] });
       return;
     }
 
@@ -87,7 +88,7 @@ export default function NewQuoteScreen() {
           }
         } catch (err: any) {
           console.error("Upload error details:", err);
-          Alert.alert("Erreur d'upload", `Impossible d'uploader une image: ${err.message}`);
+          showAlert({ type: 'error', title: "Erreur d'upload", message: `Impossible d'uploader une image: ${err.message}`, buttons: [{ text: 'OK', style: 'primary' }] });
         }
       }
 
@@ -99,7 +100,7 @@ export default function NewQuoteScreen() {
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permission requise", "Veuillez autoriser l'accès à la caméra.");
+      showAlert({ type: 'warning', title: 'Permission requise', message: 'Veuillez autoriser l\'accès à la caméra.', buttons: [{ text: 'OK', style: 'primary' }] });
       return;
     }
 
@@ -126,7 +127,7 @@ export default function NewQuoteScreen() {
         }
       } catch (err: any) {
         console.error("Upload error details:", err);
-        Alert.alert("Erreur d'upload", `Impossible d'uploader la photo: ${err.message}`);
+        showAlert({ type: 'error', title: "Erreur d'upload", message: `Impossible d'uploader la photo: ${err.message}`, buttons: [{ text: 'OK', style: 'primary' }] });
       }
       setUploading(false);
     }
@@ -138,7 +139,7 @@ export default function NewQuoteScreen() {
 
   const handleSubmit = async () => {
     if (selectedServices.length === 0) {
-      Alert.alert("Erreur", "Veuillez sélectionner au moins un service.");
+      showAlert({ type: 'error', title: 'Erreur', message: 'Veuillez sélectionner au moins un service.', buttons: [{ text: 'OK', style: 'primary' }] });
       return;
     }
 
@@ -180,14 +181,15 @@ export default function NewQuoteScreen() {
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
-      Alert.alert(
-        "Demande envoyée !",
-        "Votre demande de devis a été envoyée avec succès. Nous vous recontacterons rapidement.",
-        [{ text: "OK", onPress: () => router.push("/(main)/(tabs)/quotes") }]
-      );
+      showAlert({
+        type: 'success',
+        title: 'Demande envoyée !',
+        message: 'Votre demande de devis a été envoyée avec succès. Nous vous recontacterons rapidement.',
+        buttons: [{ text: 'OK', onPress: () => router.push("/(main)/(tabs)/quotes"), style: 'primary' }],
+      });
     } catch (err: any) {
       console.error("Submission error:", err);
-      Alert.alert("Erreur", err.message || "Impossible d'envoyer la demande.");
+      showAlert({ type: 'error', title: 'Erreur', message: err.message || "Impossible d'envoyer la demande.", buttons: [{ text: 'OK', style: 'primary' }] });
     } finally {
       setSubmitting(false);
     }
@@ -386,6 +388,7 @@ export default function NewQuoteScreen() {
           )}
         </Pressable>
       </View>
+      {AlertComponent}
     </View>
   );
 }

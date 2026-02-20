@@ -5,7 +5,6 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -16,12 +15,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/lib/auth-context";
 import Colors from "@/constants/colors";
+import { useCustomAlert } from "@/components/CustomAlert";
 
 type AccountType = "client" | "client_professionnel";
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
   const { register } = useAuth();
+  const { showAlert, AlertComponent } = useCustomAlert();
   const [accountType, setAccountType] = useState<AccountType>("client");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,32 +46,32 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!agreeTerms) {
-      Alert.alert("Consentement requis", "Veuillez accepter les mentions légales et la politique de confidentialité.");
+      showAlert({ type: 'warning', title: 'Consentement requis', message: 'Veuillez accepter les mentions légales et la politique de confidentialité.', buttons: [{ text: 'OK', style: 'primary' }] });
       return;
     }
     if (!email.trim() || !password.trim()) {
-      Alert.alert("Erreur", "Email et mot de passe sont obligatoires.");
+      showAlert({ type: 'error', title: 'Erreur', message: 'Email et mot de passe sont obligatoires.', buttons: [{ text: 'OK', style: 'primary' }] });
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert("Erreur", "Les mots de passe ne correspondent pas.");
+      showAlert({ type: 'error', title: 'Erreur', message: 'Les mots de passe ne correspondent pas.', buttons: [{ text: 'OK', style: 'primary' }] });
       return;
     }
     if (password.length < 6) {
-      Alert.alert("Erreur", "Le mot de passe doit contenir au moins 6 caractères.");
+      showAlert({ type: 'error', title: 'Erreur', message: 'Le mot de passe doit contenir au moins 6 caractères.', buttons: [{ text: 'OK', style: 'primary' }] });
       return;
     }
     if (accountType === "client_professionnel") {
       if (!companyName.trim()) {
-        Alert.alert("Erreur", "Le nom de l'entreprise est obligatoire.");
+        showAlert({ type: 'error', title: 'Erreur', message: "Le nom de l'entreprise est obligatoire.", buttons: [{ text: 'OK', style: 'primary' }] });
         return;
       }
       if (!siret.trim() || siret.length !== 14) {
-        Alert.alert("Erreur", "Le SIRET doit comporter 14 chiffres.");
+        showAlert({ type: 'error', title: 'Erreur', message: 'Le SIRET doit comporter 14 chiffres.', buttons: [{ text: 'OK', style: 'primary' }] });
         return;
       }
       if (!tvaNumber.trim()) {
-        Alert.alert("Erreur", "Le numéro de TVA est obligatoire.");
+        showAlert({ type: 'error', title: 'Erreur', message: 'Le numéro de TVA est obligatoire.', buttons: [{ text: 'OK', style: 'primary' }] });
         return;
       }
     }
@@ -99,7 +100,7 @@ export default function RegisterScreen() {
         router.replace("/(main)/(tabs)" as any);
       }, 50);
     } catch (err: any) {
-      Alert.alert("Erreur", err.message || "Impossible de créer le compte.");
+      showAlert({ type: 'error', title: 'Erreur', message: err.message || 'Impossible de créer le compte.', buttons: [{ text: 'OK', style: 'primary' }] });
       setLoading(false);
     }
   };
@@ -348,6 +349,7 @@ export default function RegisterScreen() {
           <Text style={styles.loginLinkText}>Déjà un compte ? Se connecter</Text>
         </Pressable>
       </ScrollView>
+      {AlertComponent}
     </KeyboardAvoidingView>
   );
 }

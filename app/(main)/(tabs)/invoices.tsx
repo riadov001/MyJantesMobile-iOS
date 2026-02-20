@@ -9,7 +9,6 @@ import {
   Platform,
   ActivityIndicator,
   Linking,
-  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,6 +18,7 @@ import * as WebBrowser from "expo-web-browser";
 import { invoicesApi, Invoice } from "@/lib/api";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
+import { useCustomAlert } from "@/components/CustomAlert";
 
 function getInvoiceStatusInfo(status: string) {
   const s = status?.toLowerCase() || "";
@@ -43,6 +43,7 @@ function isPayableStatus(status: string): boolean {
 }
 
 function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
+  const { showAlert, AlertComponent } = useCustomAlert();
   const statusInfo = getInvoiceStatusInfo(invoice.status);
   const date = new Date(invoice.createdAt);
   const formattedDate = date.toLocaleDateString("fr-FR", {
@@ -62,12 +63,14 @@ function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
       try {
         await Linking.openURL(invoice.paymentLink);
       } catch {
-        Alert.alert("Erreur", "Impossible d'ouvrir le lien de paiement.");
+        showAlert({ type: 'error', title: 'Erreur', message: "Impossible d'ouvrir le lien de paiement.", buttons: [{ text: 'OK', style: 'primary' }] });
       }
     }
   };
 
   return (
+    <>
+    {AlertComponent}
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       onPress={() => router.push({ pathname: "/(main)/invoice-detail", params: { id: invoice.id } })}
@@ -130,6 +133,7 @@ function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
         )}
       </View>
     </Pressable>
+    </>
   );
 }
 
