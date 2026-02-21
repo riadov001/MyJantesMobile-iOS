@@ -120,14 +120,13 @@ export async function apiCall<T = any>(
     throw new Error(errorMessage);
   }
 
+  const text = await res.text();
+  if (!text || text.trim() === "") return {} as T;
+  if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
+    throw new Error("Service temporairement indisponible. Veuillez réessayer.");
+  }
   try {
-    const text = await res.text();
-    if (!text || text.trim() === "") return {} as T;
-    try {
-      return JSON.parse(text) as T;
-    } catch {
-      return {} as T;
-    }
+    return JSON.parse(text) as T;
   } catch {
     return {} as T;
   }
