@@ -10,7 +10,7 @@ Application mobile Expo React Native pour MyJantes, un service professionnel de 
 - **State**: React Query pour les données serveur, React Context pour l'auth
 
 ## API Backend
-Base URL: `https://appmyjantes.mytoolsgroup.eu`
+Base URL: `https://appmyjantes3.mytoolsgroup.eu`
 
 ### Endpoints principaux
 - `POST /api/register` - Inscription (email, password, firstName, lastName, role, etc.)
