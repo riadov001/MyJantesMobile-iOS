@@ -133,7 +133,10 @@ export default function QuoteDetailScreen() {
   const viewToken = (quote as any).viewToken as string | undefined;
   const expiryDate = (quote as any).expiryDate || (quote as any).validUntil;
   const displayRef = (quote as any).reference || (quote as any).quoteNumber || quote.id;
-  const requestDetails = (quote as any).requestDetails || (quote as any).description || "";
+  const rawRequestDetails = (quote as any).requestDetails || (quote as any).description || "";
+  const requestDetails = typeof rawRequestDetails === "object" 
+    ? (rawRequestDetails.message || rawRequestDetails.details || JSON.stringify(rawRequestDetails)) 
+    : String(rawRequestDetails);
   const serviceName = (quote as any).service?.name || (quote as any).serviceName || "";
   const clientInfo = (quote as any).client || null;
 
