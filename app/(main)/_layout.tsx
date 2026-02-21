@@ -16,6 +16,9 @@ export default function MainLayout() {
       <Stack.Screen name="admin-settings" options={{ headerShown: false }} />
       <Stack.Screen name="ocr-scanner" options={{ presentation: "modal", headerShown: false }} />
       <Stack.Screen name="admin-notifications" options={{ headerShown: false }} />
+      <Stack.Screen name="admin-quotes" options={{ headerShown: false }} />
+      <Stack.Screen name="admin-invoices" options={{ headerShown: false }} />
+      <Stack.Screen name="admin-reservations" options={{ headerShown: false }} />
     </Stack>
   );
 }

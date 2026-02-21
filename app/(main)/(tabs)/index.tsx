@@ -233,6 +233,30 @@ export default function HomeScreen() {
             <View style={styles.adminActions}>
               <Pressable
                 style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-quotes" as any)}
+              >
+                <Ionicons name="document-text" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Gérer les devis</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-invoices" as any)}
+              >
+                <Ionicons name="receipt" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Gérer les factures</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-reservations" as any)}
+              >
+                <Ionicons name="calendar" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Gérer les réservations</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
                 onPress={() => router.push("/(main)/admin-clients" as any)}
               >
                 <Ionicons name="people" size={18} color={Colors.primary} />
