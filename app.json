@@ -18,7 +18,8 @@
       "bundleIdentifier": "com.myjantes.app",
       "infoPlist": {
         "NSCameraUsageDescription": "MyJantes a besoin de votre caméra pour prendre des photos de vos jantes.",
-        "NSPhotoLibraryUsageDescription": "MyJantes a besoin d'accéder à votre galerie pour sélectionner des photos de vos jantes."
+        "NSPhotoLibraryUsageDescription": "MyJantes a besoin d'accéder à votre galerie pour sélectionner des photos de vos jantes.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -30,7 +31,8 @@
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE"
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -62,6 +64,15 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": "https://replit.com/"
+      },
+      "eas": {
+        "projectId": "82c69d4c-5b2d-4cd3-b6d4-5f5863dde820"
+      }
+    },
+    "owner": "lastmytools"
   }
 }
