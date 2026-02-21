@@ -39,11 +39,7 @@ function getStatusInfo(status: string) {
 function parseVehicleInfo(vehicleInfo: any) {
   if (!vehicleInfo) return null;
   if (typeof vehicleInfo === "string") {
-    try {
-      return JSON.parse(vehicleInfo);
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(vehicleInfo); } catch { return null; }
   }
   if (typeof vehicleInfo === "object") return vehicleInfo;
   return null;
@@ -56,9 +52,7 @@ function parseItems(items: any): any[] {
     try {
       const parsed = JSON.parse(items);
       return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
+    } catch { return []; }
   }
   return [];
 }
@@ -83,13 +77,19 @@ export default function QuoteDetailScreen() {
   const [accepting, setAccepting] = useState(false);
   const [rejecting, setRejecting] = useState(false);
 
-  const { data: allQuotesRaw, isLoading } = useQuery({
-    queryKey: ["quotes"],
-    queryFn: quotesApi.getAll,
+  const { data: quote, isLoading, error } = useQuery({
+    queryKey: ["quote", id],
+    queryFn: async () => {
+      try {
+        const detail = await quotesApi.getById(id!);
+        if (detail && detail.id) return detail;
+      } catch {}
+      const all = await quotesApi.getAll();
+      const list = Array.isArray(all) ? all : [];
+      return list.find((q) => q.id === id) || null;
+    },
+    enabled: !!id,
   });
-
-  const allQuotes = Array.isArray(allQuotesRaw) ? allQuotesRaw : [];
-  const quote = allQuotes.find((q) => q.id === id);
 
   if (isLoading) {
     return (
@@ -133,35 +133,34 @@ export default function QuoteDetailScreen() {
   const viewToken = (quote as any).viewToken as string | undefined;
   const expiryDate = (quote as any).expiryDate || (quote as any).validUntil;
   const displayRef = (quote as any).reference || (quote as any).quoteNumber || quote.id;
+  const requestDetails = (quote as any).requestDetails || (quote as any).description || "";
+  const serviceName = (quote as any).service?.name || (quote as any).serviceName || "";
+  const clientInfo = (quote as any).client || null;
+
+  const totalHTNum = totalHT ? parseFloat(totalHT) : 0;
+  const tvaAmountNum = tvaAmount ? parseFloat(tvaAmount) : 0;
+  const totalTTCNum = parseFloat(totalAmount) || (totalHTNum + tvaAmountNum) || 0;
 
   const statusLower = quote.status?.toLowerCase() || "";
-  const canRespond = (statusLower === "pending" || statusLower === "approved") && !!viewToken;
-
-  const requestDetails = (quote as any).requestDetails || (quote as any).description || "";
-  const serviceId = (quote as any).serviceId || "";
-  const serviceName = (quote as any).service?.name || (quote as any).serviceName || "";
   const isPending = statusLower === "pending" || statusLower === "en_attente";
   const hasNoContent = quoteItems.length === 0 && totalTTCNum === 0;
+  const canRespond = (statusLower === "pending" || statusLower === "approved") && !!viewToken;
 
   const pdfUrl = viewToken ? `${API_BASE}/api/public/quotes/${viewToken}/pdf` : null;
 
+  const formattedExpiry = expiryDate
+    ? new Date(expiryDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+    : null;
+
   const handleDownloadPdf = async () => {
     if (!pdfUrl) return;
-    try {
-      await WebBrowser.openBrowserAsync(pdfUrl);
-    } catch {
-      Linking.openURL(pdfUrl);
-    }
+    try { await WebBrowser.openBrowserAsync(pdfUrl); } catch { Linking.openURL(pdfUrl); }
   };
 
   const handleConsultExternal = async () => {
     if (!viewToken) return;
     const url = `${API_BASE}/public/quotes/${viewToken}`;
-    try {
-      await WebBrowser.openBrowserAsync(url);
-    } catch {
-      Linking.openURL(url);
-    }
+    try { await WebBrowser.openBrowserAsync(url); } catch { Linking.openURL(url); }
   };
 
   const handleAccept = async () => {
@@ -170,6 +169,7 @@ export default function QuoteDetailScreen() {
     try {
       await apiCall(`/api/public/quotes/${viewToken}/accept`, { method: "POST" });
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["quote", id] });
       showAlert({ type: 'success', title: 'Devis accepté', message: 'Le devis a bien été accepté.', buttons: [{ text: 'OK', style: 'primary' }] });
     } catch (err: any) {
       showAlert({ type: 'error', title: 'Erreur', message: err?.message || "Impossible d'accepter le devis.", buttons: [{ text: 'OK', style: 'primary' }] });
@@ -194,6 +194,7 @@ export default function QuoteDetailScreen() {
             try {
               await apiCall(`/api/public/quotes/${viewToken}/reject`, { method: "POST" });
               queryClient.invalidateQueries({ queryKey: ["quotes"] });
+              queryClient.invalidateQueries({ queryKey: ["quote", id] });
               showAlert({ type: 'success', title: 'Devis refusé', message: 'Le devis a bien été refusé.', buttons: [{ text: 'OK', style: 'primary' }] });
             } catch (err: any) {
               showAlert({ type: 'error', title: 'Erreur', message: err?.message || "Impossible de refuser le devis.", buttons: [{ text: 'OK', style: 'primary' }] });
@@ -205,14 +206,6 @@ export default function QuoteDetailScreen() {
       ],
     });
   };
-
-  const formattedExpiry = expiryDate
-    ? new Date(expiryDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
-    : null;
-
-  const totalHTNum = totalHT ? parseFloat(totalHT) : 0;
-  const tvaAmountNum = tvaAmount ? parseFloat(tvaAmount) : 0;
-  const totalTTCNum = parseFloat(totalAmount) || (totalHTNum + tvaAmountNum) || 0;
 
   return (
     <View style={styles.container}>
@@ -246,6 +239,11 @@ export default function QuoteDetailScreen() {
           {formattedExpiry && (
             <Text style={styles.expiryText}>Valide jusqu'au {formattedExpiry}</Text>
           )}
+          {totalTTCNum > 0 && (
+            <View style={styles.totalBadgeTop}>
+              <Text style={styles.totalBadgeTopText}>{totalTTCNum.toFixed(2)} € TTC</Text>
+            </View>
+          )}
         </View>
 
         {isPending && hasNoContent && (
@@ -260,28 +258,70 @@ export default function QuoteDetailScreen() {
           </View>
         )}
 
-        {serviceName && (
+        {serviceName ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="construct-outline" size={18} color={Colors.primary} />
               <Text style={styles.sectionTitle}>Service demandé</Text>
             </View>
-            <View style={styles.serviceRow}>
-              <View style={styles.serviceIcon}>
-                <Ionicons name="checkmark" size={14} color={Colors.primary} />
+            <View style={styles.sectionContent}>
+              <View style={styles.serviceRow}>
+                <View style={styles.serviceIcon}>
+                  <Ionicons name="checkmark" size={14} color={Colors.primary} />
+                </View>
+                <Text style={styles.serviceName}>{serviceName}</Text>
               </View>
-              <Text style={styles.serviceName}>{serviceName}</Text>
             </View>
           </View>
-        )}
+        ) : null}
 
-        {requestDetails && (
+        {requestDetails ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="document-text-outline" size={18} color={Colors.primary} />
               <Text style={styles.sectionTitle}>Détails de la demande</Text>
             </View>
-            <Text style={styles.notesText}>{requestDetails}</Text>
+            <View style={styles.sectionContent}>
+              <Text style={styles.notesText}>{requestDetails}</Text>
+            </View>
+          </View>
+        ) : null}
+
+        {clientInfo && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="person-outline" size={18} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>Client</Text>
+            </View>
+            <View style={styles.sectionContent}>
+              {(clientInfo.firstName || clientInfo.lastName) && (
+                <InfoRow icon="person-outline" label="Nom" value={`${clientInfo.firstName || ''} ${clientInfo.lastName || ''}`.trim()} />
+              )}
+              {clientInfo.email && <InfoRow icon="mail-outline" label="Email" value={clientInfo.email} />}
+              {clientInfo.phone && <InfoRow icon="call-outline" label="Téléphone" value={clientInfo.phone} />}
+              {clientInfo.address && <InfoRow icon="location-outline" label="Adresse" value={`${clientInfo.address}${clientInfo.postalCode ? ', ' + clientInfo.postalCode : ''}${clientInfo.city ? ' ' + clientInfo.city : ''}`} />}
+              {clientInfo.companyName && <InfoRow icon="business-outline" label="Société" value={clientInfo.companyName} />}
+              {clientInfo.siret && <InfoRow icon="card-outline" label="SIRET" value={clientInfo.siret} />}
+            </View>
+          </View>
+        )}
+
+        {vehicleInfo && typeof vehicleInfo === "object" && Object.keys(vehicleInfo).length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="car-outline" size={18} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>Véhicule</Text>
+            </View>
+            <View style={styles.sectionContent}>
+              {vehicleInfo.marque && <InfoRow icon="car-outline" label="Marque" value={vehicleInfo.marque} />}
+              {vehicleInfo.modele && <InfoRow icon="car-sport-outline" label="Modèle" value={vehicleInfo.modele} />}
+              {vehicleInfo.immatriculation && <InfoRow icon="card-outline" label="Immatriculation" value={vehicleInfo.immatriculation} />}
+              {vehicleInfo.annee && <InfoRow icon="calendar-outline" label="Année" value={vehicleInfo.annee} />}
+              {vehicleInfo.vin && <InfoRow icon="barcode-outline" label="VIN" value={vehicleInfo.vin} />}
+              {vehicleInfo.couleur && <InfoRow icon="color-palette-outline" label="Couleur" value={vehicleInfo.couleur} />}
+              {vehicleInfo.type && <InfoRow icon="information-circle-outline" label="Type" value={vehicleInfo.type} />}
+              {vehicleInfo.motorisation && <InfoRow icon="speedometer-outline" label="Motorisation" value={vehicleInfo.motorisation} />}
+            </View>
           </View>
         )}
 
@@ -289,15 +329,18 @@ export default function QuoteDetailScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="list-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>Lignes du devis</Text>
+              <Text style={styles.sectionTitle}>Lignes du devis ({quoteItems.length})</Text>
             </View>
             {quoteItems.map((item: any, idx: number) => {
               const qty = item.quantity ? parseFloat(item.quantity) : 1;
               const unitPrice = item.unitPrice || item.price || item.priceHT || null;
               const lineTotal = item.total || item.totalHT || (unitPrice ? (parseFloat(unitPrice) * qty).toString() : null);
+              const desc = item.description || item.name || item.label || `Prestation ${idx + 1}`;
+              const details = item.details || item.serviceDetails || item.notes || "";
               return (
                 <View key={idx} style={styles.lineItemCard}>
-                  <Text style={styles.lineItemName}>{item.description || item.name || item.label || `Prestation ${idx + 1}`}</Text>
+                  <Text style={styles.lineItemName}>{desc}</Text>
+                  {details ? <Text style={styles.lineItemSubtext}>{details}</Text> : null}
                   <View style={styles.lineItemDetails}>
                     {unitPrice && (
                       <Text style={styles.lineItemMeta}>
@@ -309,7 +352,7 @@ export default function QuoteDetailScreen() {
                     )}
                     {lineTotal && (
                       <Text style={styles.lineItemTotal}>
-                        {parseFloat(lineTotal).toFixed(2)} €
+                        {parseFloat(lineTotal).toFixed(2)} € HT
                       </Text>
                     )}
                   </View>
@@ -319,8 +362,34 @@ export default function QuoteDetailScreen() {
           </View>
         )}
 
+        {quoteServices.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="construct-outline" size={18} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>Services inclus</Text>
+            </View>
+            <View style={styles.sectionContent}>
+              {quoteServices.map((service: any, idx: number) => {
+                const sName = typeof service === "string" ? service : service?.name || service?.id || `Service ${idx + 1}`;
+                return (
+                  <View key={idx} style={styles.serviceRow}>
+                    <View style={styles.serviceIcon}>
+                      <Ionicons name="checkmark" size={14} color={Colors.primary} />
+                    </View>
+                    <Text style={styles.serviceName}>{sName}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
         {(totalHTNum > 0 || totalTTCNum > 0) && (
           <View style={styles.amountsCard}>
+            <View style={styles.amountsHeader}>
+              <Ionicons name="calculator-outline" size={18} color={Colors.primary} />
+              <Text style={styles.amountsTitle}>Récapitulatif</Text>
+            </View>
             {totalHTNum > 0 && (
               <View style={styles.amountRow}>
                 <Text style={styles.amountLabel}>Montant HT</Text>
@@ -333,52 +402,10 @@ export default function QuoteDetailScreen() {
                 <Text style={styles.amountTVA}>{tvaAmountNum.toFixed(2)} €</Text>
               </View>
             )}
-          <View style={[styles.amountRow, (totalHTNum > 0 || tvaAmountNum > 0) ? styles.totalRow : undefined]}>
-            <Text style={styles.totalLabel}>Total TTC</Text>
-            <Text style={styles.totalValue}>{totalTTCNum.toFixed(2)} €</Text>
-          </View>
-          {totalAmount && parseFloat(totalAmount) > 0 && parseFloat(totalAmount) !== totalTTCNum && (
-            <View style={styles.totalBadge}>
-              <Text style={styles.totalBadgeText}>
-                Total payé : {parseFloat(totalAmount).toFixed(2)} €
-              </Text>
+            <View style={[styles.amountRow, (totalHTNum > 0 || tvaAmountNum > 0) ? styles.totalRow : undefined]}>
+              <Text style={styles.totalLabel}>Total TTC</Text>
+              <Text style={styles.totalValue}>{totalTTCNum.toFixed(2)} €</Text>
             </View>
-          )}
-        </View>
-        )}
-
-        {quoteServices.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="construct-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>Services demandés</Text>
-            </View>
-            {quoteServices.map((service: any, idx: number) => {
-              const serviceName = typeof service === "string" ? service : service?.name || service?.id || `Service ${idx + 1}`;
-              return (
-                <View key={idx} style={styles.serviceRow}>
-                  <View style={styles.serviceIcon}>
-                    <Ionicons name="checkmark" size={14} color={Colors.primary} />
-                  </View>
-                  <Text style={styles.serviceName}>{serviceName}</Text>
-                </View>
-              );
-            })}
-          </View>
-        )}
-
-        {vehicleInfo && typeof vehicleInfo === "object" && Object.keys(vehicleInfo).length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="car-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>Véhicule</Text>
-            </View>
-            {vehicleInfo.marque && <InfoRow icon="car-outline" label="Marque" value={vehicleInfo.marque} />}
-            {vehicleInfo.modele && <InfoRow icon="car-sport-outline" label="Modèle" value={vehicleInfo.modele} />}
-            {vehicleInfo.immatriculation && <InfoRow icon="card-outline" label="Immatriculation" value={vehicleInfo.immatriculation} />}
-            {vehicleInfo.annee && <InfoRow icon="calendar-outline" label="Année" value={vehicleInfo.annee} />}
-            {vehicleInfo.vin && <InfoRow icon="barcode-outline" label="VIN" value={vehicleInfo.vin} />}
-            {vehicleInfo.couleur && <InfoRow icon="color-palette-outline" label="Couleur" value={vehicleInfo.couleur} />}
           </View>
         )}
 
@@ -389,16 +416,19 @@ export default function QuoteDetailScreen() {
               <Text style={styles.sectionTitle}>Photos ({quotePhotos.length})</Text>
             </View>
             <View style={styles.photosGrid}>
-              {quotePhotos.map((photo: any, idx: number) => (
-                <View key={idx} style={styles.photoThumb}>
-                  <Image 
-                    source={{ uri: (photo as any).url || (photo as any).uri || photo }} 
-                    style={styles.photoImage} 
-                    contentFit="cover"
-                  />
-                  <Text style={styles.photoLabel}>Photo {idx + 1}</Text>
-                </View>
-              ))}
+              {quotePhotos.map((photo: any, idx: number) => {
+                const photoUri = typeof photo === "string" ? photo : photo?.url || photo?.uri || "";
+                const fullUri = photoUri.startsWith("http") ? photoUri : `${API_BASE}${photoUri}`;
+                return (
+                  <View key={idx} style={styles.photoThumb}>
+                    <Image
+                      source={{ uri: fullUri }}
+                      style={styles.photoImage}
+                      contentFit="cover"
+                    />
+                  </View>
+                );
+              })}
             </View>
           </View>
         )}
@@ -409,18 +439,20 @@ export default function QuoteDetailScreen() {
               <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
               <Text style={styles.sectionTitle}>Notes</Text>
             </View>
-            <Text style={styles.notesText}>{quoteNotes}</Text>
+            <View style={styles.sectionContent}>
+              <Text style={styles.notesText}>{quoteNotes}</Text>
+            </View>
           </View>
         ) : null}
 
         <View style={styles.footerActions}>
           {viewToken && (
             <>
-              <Pressable style={styles.btnExternal} onPress={handleConsultExternal}>
-                <Ionicons name="eye-outline" size={18} color={Colors.text} />
-                <Text style={styles.btnExternalText}>Consulter les détails complets</Text>
+              <Pressable style={styles.btnConsult} onPress={handleConsultExternal}>
+                <Ionicons name="open-outline" size={18} color={Colors.text} />
+                <Text style={styles.btnConsultText}>Voir sur le portail web</Text>
               </Pressable>
-              
+
               <Pressable style={styles.btnPdf} onPress={handleDownloadPdf}>
                 <Ionicons name="document-outline" size={18} color="#3B82F6" />
                 <Text style={styles.btnPdfText}>Télécharger PDF</Text>
@@ -503,6 +535,45 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     gap: 8,
   },
+  statusBadgeLarge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 24,
+  },
+  statusTextLarge: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+  },
+  quoteNumber: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    color: Colors.text,
+  },
+  quoteDate: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+  },
+  expiryText: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+  },
+  totalBadgeTop: {
+    backgroundColor: Colors.surfaceSecondary,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  totalBadgeTopText: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    color: Colors.primary,
+  },
   processingCard: {
     backgroundColor: Colors.surface,
     borderRadius: 14,
@@ -534,32 +605,108 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
-  statusBadgeLarge: {
+  section: {
+    marginBottom: 20,
+  },
+  sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 24,
+    marginBottom: 12,
   },
-  statusTextLarge: {
-    fontSize: 15,
+  sectionTitle: {
+    fontSize: 16,
     fontFamily: "Inter_600SemiBold",
-  },
-  quoteNumber: {
-    fontSize: 18,
-    fontFamily: "Inter_700Bold",
     color: Colors.text,
   },
-  quoteDate: {
+  sectionContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  infoLabel: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  infoLabelText: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
   },
-  expiryText: {
+  infoValue: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
+    textAlign: "right",
+    flex: 1,
+  },
+  serviceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 6,
+  },
+  serviceIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.acceptedBg,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  serviceName: {
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+    color: Colors.text,
+    flex: 1,
+  },
+  lineItemCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  lineItemName: {
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  lineItemSubtext: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
+    marginBottom: 8,
+  },
+  lineItemDetails: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 6,
+  },
+  lineItemMeta: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+  },
+  lineItemTotal: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.primary,
   },
   amountsCard: {
     backgroundColor: Colors.surface,
@@ -569,6 +716,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     gap: 10,
+  },
+  amountsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 4,
+  },
+  amountsTitle: {
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
   },
   amountRow: {
     flexDirection: "row",
@@ -605,120 +763,15 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     color: Colors.primary,
   },
-  totalBadge: {
-    backgroundColor: Colors.surfaceSecondary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginTop: 8,
-    alignSelf: "flex-start",
-  },
-  totalBadgeText: {
-    fontSize: 14,
-    fontFamily: "Inter_700Bold",
-    color: Colors.accepted,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
-    color: Colors.text,
-  },
-  lineItemCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  lineItemName: {
-    fontSize: 14,
-    fontFamily: "Inter_500Medium",
-    color: Colors.text,
-    marginBottom: 6,
-  },
-  lineItemDetails: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  lineItemMeta: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-  },
-  lineItemTotal: {
-    fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
-    color: Colors.primary,
-  },
-  serviceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: Colors.surface,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  serviceIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.acceptedBg,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  serviceName: {
-    fontSize: 14,
-    fontFamily: "Inter_500Medium",
-    color: Colors.text,
-    flex: 1,
-  },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-  },
-  infoLabel: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  infoLabelText: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-    color: Colors.textSecondary,
-  },
-  infoValue: {
-    fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
-    color: Colors.text,
-  },
   photosGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
   },
   photoThumb: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     borderRadius: 10,
-    backgroundColor: Colors.surface,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: Colors.border,
@@ -727,28 +780,11 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  photoLabel: {
-    position: "absolute",
-    bottom: 4,
-    left: 4,
-    right: 4,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    color: "#fff",
-    fontSize: 9,
-    textAlign: "center",
-    borderRadius: 4,
-    paddingVertical: 2,
-  },
   notesText: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
     lineHeight: 22,
-    backgroundColor: Colors.surface,
-    borderRadius: 10,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
   },
   errorText: {
     fontSize: 16,
@@ -773,6 +809,22 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 20,
   },
+  btnConsult: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: Colors.surfaceSecondary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  btnConsultText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
+  },
   btnPdf: {
     flexDirection: "row",
     alignItems: "center",
@@ -789,22 +841,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     color: "#3B82F6",
   },
-  btnExternal: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: 12,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  btnExternalText: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-    color: Colors.text,
-  },
   responseRow: {
     flexDirection: "row",
     gap: 12,
@@ -814,7 +850,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 6,
     backgroundColor: Colors.accepted,
     borderRadius: 12,
     paddingVertical: 14,
@@ -829,7 +865,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 6,
     backgroundColor: "transparent",
     borderRadius: 12,
     paddingVertical: 14,
