@@ -2,7 +2,17 @@ import { fetch as expoFetch } from "expo/fetch";
 import { Platform } from "react-native";
 
 // Force API_BASE to be consistent
-const API_BASE = "https://appmyjantes.mytoolsgroup.eu";
+const getApiBase = () => {
+  if (typeof window !== 'undefined' && window.location.hostname.includes('replit.dev')) {
+    return `https://${window.location.hostname.replace(':8081', ':5000')}`;
+  }
+  if (process.env.EXPO_PUBLIC_DOMAIN) {
+    return `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
+  }
+  return "https://appmyjantes.mytoolsgroup.eu";
+};
+
+const API_BASE = getApiBase();
 
 interface ApiOptions {
   method?: string;

@@ -13,6 +13,8 @@ export default function MainLayout() {
       <Stack.Screen name="chatbot" options={{ headerShown: false }} />
       <Stack.Screen name="admin-users" options={{ headerShown: false }} />
       <Stack.Screen name="admin-clients" options={{ headerShown: false }} />
+      <Stack.Screen name="admin-analytics" options={{ headerShown: false }} />
+      <Stack.Screen name="admin-settings" options={{ headerShown: false }} />
     </Stack>
   );
 }
