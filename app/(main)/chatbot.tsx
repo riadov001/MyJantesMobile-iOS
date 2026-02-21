@@ -68,31 +68,85 @@ export default function ChatbotScreen() {
       setHasUserSent(true);
 
       try {
-        const response = await apiCall<{ response?: string; message?: string; reply?: string; answer?: string; content?: string; data?: { response?: string } }>(
-          "/api/ai/assistant",
-          {
-            method: "POST",
-            body: { messages: text.trim(), mode: "chat" },
+        // Try sending full conversation history as array of message objects
+        try {
+          const response = await apiCall<any>(
+            "/api/ai/assistant",
+            {
+              method: "POST",
+              body: {
+                messages: [
+                  ...currentMessages
+                    .filter(m => m.id !== "welcome")
+                    .map(m => ({
+                      role: m.isUser ? "user" : "assistant",
+                      content: m.text
+                    })),
+                  { role: "user", content: text.trim() }
+                ],
+                mode: "chat"
+              },
+            }
+          );
+
+          // Extract bot reply with multiple fallback options
+          const rawResponse = response;
+          let botReply: string;
+          if (typeof rawResponse === "string") {
+            botReply = rawResponse;
+          } else {
+            botReply =
+              rawResponse.response ||
+              rawResponse.message ||
+              rawResponse.reply ||
+              rawResponse.answer ||
+              rawResponse.content ||
+              rawResponse.data?.response ||
+              "Désolé, je n'ai pas pu traiter votre demande.";
           }
-        );
 
-        const botReply = 
-          response.response || 
-          response.message || 
-          response.reply || 
-          response.answer || 
-          response.content || 
-          response.data?.response || 
-          "Désolé, je n'ai pas pu traiter votre demande.";
+          const botMessage: Message = {
+            id: generateId(),
+            text: botReply,
+            isUser: false,
+            timestamp: new Date(),
+          };
 
-        const botMessage: Message = {
-          id: generateId(),
-          text: botReply,
-          isUser: false,
-          timestamp: new Date(),
-        };
+          setMessages([...currentMessages, botMessage]);
+        } catch (arrayFormatError: any) {
+          // Fallback: try simple format if array format fails
+          const fallbackResponse = await apiCall<any>(
+            "/api/ai/assistant",
+            {
+              method: "POST",
+              body: { messages: text.trim(), mode: "chat" },
+            }
+          );
 
-        setMessages([...currentMessages, botMessage]);
+          const rawResponse = fallbackResponse;
+          let botReply: string;
+          if (typeof rawResponse === "string") {
+            botReply = rawResponse;
+          } else {
+            botReply =
+              rawResponse.response ||
+              rawResponse.message ||
+              rawResponse.reply ||
+              rawResponse.answer ||
+              rawResponse.content ||
+              rawResponse.data?.response ||
+              "Désolé, je n'ai pas pu traiter votre demande.";
+          }
+
+          const botMessage: Message = {
+            id: generateId(),
+            text: botReply,
+            isUser: false,
+            timestamp: new Date(),
+          };
+
+          setMessages([...currentMessages, botMessage]);
+        }
       } catch (error: any) {
         const errorMessage: Message = {
           id: generateId(),

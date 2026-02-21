@@ -78,6 +78,24 @@ export default function ProfileScreen() {
     loadNotificationPreferences();
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.firstName || "");
+      setLastName(user.lastName || "");
+      setPhone(user.phone || "");
+      setAddress(user.address || "");
+      setPostalCode(user.postalCode || "");
+      setCity(user.city || "");
+      setCompanyName(user.companyName || "");
+      setSiret(user.siret || "");
+      setTvaNumber(user.tvaNumber || "");
+      setCompanyAddress(user.companyAddress || "");
+      setCompanyPostalCode(user.companyPostalCode || "");
+      setCompanyCity(user.companyCity || "");
+      setCompanyCountry(user.companyCountry || "France");
+    }
+  }, [user]);
+
   const checkBiometrics = async () => {
     if (Platform.OS === "web") return;
     try {

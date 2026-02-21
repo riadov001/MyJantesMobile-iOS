@@ -89,6 +89,23 @@ export default function HomeScreen() {
   });
   const greeting = user?.firstName ? `Bonjour ${user.firstName}` : "Bonjour";
 
+  const calculatedRevenue = invoices
+    .filter((i: any) => { const s = i.status?.toLowerCase(); return s === 'paid' || s === 'payée' || s === 'payé'; })
+    .reduce((sum: number, i: any) => sum + parseFloat(i.totalIncludingTax || i.totalTTC || '0'), 0);
+  const displayRevenue = (() => {
+    const rev = analyticsData?.totalRevenue ?? analyticsData?.revenue;
+    const num = typeof rev === "number" ? rev : 0;
+    return num > 0 ? num : calculatedRevenue;
+  })();
+
+  const quoteStatusCounts = {
+    pending: quotes.filter((q: any) => q.status === 'pending' || q.status === 'en_attente').length,
+    accepted: quotes.filter((q: any) => q.status === 'accepted' || q.status === 'accepté').length,
+    rejected: quotes.filter((q: any) => q.status === 'rejected' || q.status === 'refusé').length,
+    completed: quotes.filter((q: any) => q.status === 'completed' || q.status === 'terminé').length,
+  };
+  const maxQuoteCount = Math.max(quoteStatusCounts.pending, quoteStatusCounts.accepted, quoteStatusCounts.rejected, quoteStatusCounts.completed, 1);
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -163,7 +180,7 @@ export default function HomeScreen() {
               <View style={styles.adminStatCard}>
                 <Ionicons name="cash-outline" size={20} color={Colors.accepted} />
                 <Text style={[styles.adminStatNumber, { color: Colors.accepted }]}>
-                  {(() => { const rev = analyticsData?.totalRevenue ?? analyticsData?.revenue; const num = typeof rev === "number" ? rev : 0; return num.toLocaleString("fr-FR", { maximumFractionDigits: 0 }); })()}€
+                  {displayRevenue.toLocaleString("fr-FR", { maximumFractionDigits: 0 })}€
                 </Text>
                 <Text style={styles.adminStatLabel}>CA</Text>
               </View>
@@ -180,6 +197,36 @@ export default function HomeScreen() {
                   {typeof analyticsData?.activeReservations === "number" ? analyticsData.activeReservations : 0}
                 </Text>
                 <Text style={styles.adminStatLabel}>RDV actifs</Text>
+              </View>
+            </View>
+
+            <View style={styles.chartSection}>
+              <Text style={styles.chartSectionTitle}>Activité récente</Text>
+
+              <Text style={styles.chartSubTitle}>Répartition des devis</Text>
+              {[
+                { label: "En attente", count: quoteStatusCounts.pending, color: Colors.pending },
+                { label: "Acceptés", count: quoteStatusCounts.accepted, color: Colors.accepted },
+                { label: "Refusés", count: quoteStatusCounts.rejected, color: Colors.rejected },
+                { label: "Terminés", count: quoteStatusCounts.completed, color: Colors.primary },
+              ].map((item) => (
+                <View key={item.label} style={styles.chartBarRow}>
+                  <Text style={styles.chartBarLabel}>{item.label}</Text>
+                  <View style={styles.chartBarTrack}>
+                    <View style={[styles.chartBarFill, { width: `${(item.count / maxQuoteCount) * 100}%` as any, backgroundColor: item.color }]} />
+                  </View>
+                  <Text style={styles.chartBarValue}>{item.count}</Text>
+                </View>
+              ))}
+
+              <View style={styles.revenueIndicator}>
+                <View style={styles.revenueIndicatorLeft}>
+                  <Ionicons name="wallet-outline" size={18} color={Colors.accepted} />
+                  <Text style={styles.revenueIndicatorLabel}>CA factures payées</Text>
+                </View>
+                <Text style={styles.revenueIndicatorValue}>
+                  {calculatedRevenue.toLocaleString("fr-FR", { maximumFractionDigits: 0 })}€
+                </Text>
               </View>
             </View>
 
@@ -578,5 +625,81 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
     color: Colors.text,
+  },
+  chartSection: {
+    backgroundColor: Colors.surfaceSecondary,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 14,
+    marginBottom: 14,
+    gap: 10,
+  },
+  chartSectionTitle: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  chartSubTitle: {
+    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.textSecondary,
+  },
+  chartBarRow: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 8,
+  },
+  chartBarLabel: {
+    width: 75,
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
+  },
+  chartBarTrack: {
+    flex: 1,
+    height: 14,
+    backgroundColor: Colors.border,
+    borderRadius: 7,
+    overflow: "hidden" as const,
+  },
+  chartBarFill: {
+    height: 14,
+    borderRadius: 7,
+    minWidth: 4,
+  },
+  chartBarValue: {
+    width: 28,
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+    color: Colors.text,
+    textAlign: "right" as const,
+  },
+  revenueIndicator: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "space-between" as const,
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  revenueIndicatorLeft: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 8,
+  },
+  revenueIndicatorLabel: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
+  },
+  revenueIndicatorValue: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    color: Colors.accepted,
   },
 });

@@ -114,6 +114,18 @@ function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
             {parseFloat(totalTTC).toFixed(2)} €
           </Text>
         </View>
+        {(invoice as any).viewToken && (
+          <Pressable
+            style={styles.pdfBtn}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              const url = `https://appmyjantes.mytoolsgroup.eu/api/public/invoices/${(invoice as any).viewToken}/pdf`;
+              WebBrowser.openBrowserAsync(url).catch(() => Linking.openURL(url));
+            }}
+          >
+            <Ionicons name="document-outline" size={16} color="#3B82F6" />
+          </Pressable>
+        )}
         {hasPaymentLink ? (
           <Pressable
             style={({ pressed }) => [styles.payButton, pressed && styles.payButtonPressed]}
@@ -321,6 +333,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
     color: "#fff",
+  },
+  pdfBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#3B82F6",
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyContainer: {
     alignItems: "center",

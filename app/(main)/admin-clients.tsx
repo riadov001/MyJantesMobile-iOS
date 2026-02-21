@@ -15,7 +15,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { adminClientsApi } from "@/lib/api";
+import { adminUsersApi } from "@/lib/api";
 import Colors from "@/constants/colors";
 import { useCustomAlert } from "@/components/CustomAlert";
 
@@ -39,12 +39,13 @@ export default function AdminClientsScreen() {
   const [search, setSearch] = useState("");
 
   const { data: clientsRaw, isLoading, refetch } = useQuery({
-    queryKey: ["admin-clients"],
-    queryFn: adminClientsApi.getAll,
+    queryKey: ["admin-users"],
+    queryFn: adminUsersApi.getAll,
   });
 
   const clients = useMemo(() => {
-    const list = Array.isArray(clientsRaw) ? clientsRaw : [];
+    const allUsers = Array.isArray(clientsRaw) ? clientsRaw : [];
+    const list = allUsers.filter((u: any) => u.role === "client" || u.role === "client_professionnel");
     if (!search.trim()) return list;
     const q = search.toLowerCase().trim();
     return list.filter((c: any) => {
@@ -56,9 +57,9 @@ export default function AdminClientsScreen() {
   }, [clientsRaw, search]);
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => adminClientsApi.delete(id),
+    mutationFn: (id: string) => adminUsersApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-clients"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       showAlert({
         type: "success",
         title: "Succès",
