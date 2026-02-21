@@ -63,9 +63,9 @@ export default function NewQuoteScreen() {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
+      allowsMultipleSelection: false,
       quality: 0.7,
-      selectionLimit: 10,
+      selectionLimit: 1,
     });
 
     if (!result.canceled && result.assets.length > 0) {
@@ -92,7 +92,7 @@ export default function NewQuoteScreen() {
         }
       }
 
-      setPhotos((prev) => [...prev, ...newPhotos]);
+      setPhotos(newPhotos);
       setUploading(false);
     }
   };
@@ -120,10 +120,10 @@ export default function NewQuoteScreen() {
         console.log("Upload result for", filename, ":", uploadResult);
         const photoKey = uploadResult?.id || uploadResult?.objectPath || uploadResult?.key || uploadResult?.path || uploadResult?.url;
         if (photoKey) {
-          setPhotos((prev) => [...prev, { uri, key: String(photoKey) }]);
+          setPhotos([{ uri, key: String(photoKey) }]);
         } else {
           console.warn("Upload response without path:", JSON.stringify(uploadResult));
-          setPhotos((prev) => [...prev, { uri, key: `upload_${Date.now()}` }]);
+          setPhotos([{ uri, key: `upload_${Date.now()}` }]);
         }
       } catch (err: any) {
         console.error("Upload error details:", err);
@@ -274,7 +274,7 @@ export default function NewQuoteScreen() {
           <View style={styles.sectionHeader}>
             <Ionicons name="camera-outline" size={20} color={Colors.primary} />
             <Text style={styles.sectionTitle}>
-              Photos de vos jantes <Text style={styles.required}>(optionnel)</Text>
+              Photo de vos jantes <Text style={styles.required}>(1 photo)</Text>
             </Text>
           </View>
 
@@ -294,27 +294,31 @@ export default function NewQuoteScreen() {
               </View>
             )}
 
-            <Pressable
-              style={({ pressed }) => [styles.addPhotoBtn, pressed && styles.addPhotoBtnPressed]}
-              onPress={pickImages}
-            >
-              <Ionicons name="images-outline" size={24} color={Colors.primary} />
-              <Text style={styles.addPhotoText}>Galerie</Text>
-            </Pressable>
+            {photos.length === 0 && !uploading && (
+              <>
+                <Pressable
+                  style={({ pressed }) => [styles.addPhotoBtn, pressed && styles.addPhotoBtnPressed]}
+                  onPress={pickImages}
+                >
+                  <Ionicons name="images-outline" size={24} color={Colors.primary} />
+                  <Text style={styles.addPhotoText}>Galerie</Text>
+                </Pressable>
 
-            {Platform.OS !== "web" && (
-              <Pressable
-                style={({ pressed }) => [styles.addPhotoBtn, pressed && styles.addPhotoBtnPressed]}
-                onPress={takePhoto}
-              >
-                <Ionicons name="camera-outline" size={24} color={Colors.primary} />
-                <Text style={styles.addPhotoText}>Photo</Text>
-              </Pressable>
+                {Platform.OS !== "web" && (
+                  <Pressable
+                    style={({ pressed }) => [styles.addPhotoBtn, pressed && styles.addPhotoBtnPressed]}
+                    onPress={takePhoto}
+                  >
+                    <Ionicons name="camera-outline" size={24} color={Colors.primary} />
+                    <Text style={styles.addPhotoText}>Photo</Text>
+                  </Pressable>
+                )}
+              </>
             )}
           </View>
 
           <Text style={[styles.photoHint, photos.length >= 1 && styles.photoHintOk]}>
-            {photos.length >= 1 ? `${photos.length} photo${photos.length > 1 ? "s" : ""} ajoutée${photos.length > 1 ? "s" : ""}` : "Ajoutez des photos pour un devis plus précis"}
+            {photos.length >= 1 ? "1 photo ajoutée" : "Ajoutez une photo pour un devis plus précis"}
           </Text>
         </View>
 

@@ -200,6 +200,30 @@ export default function HomeScreen() {
                 <Text style={styles.adminActionText}>Gérer les utilisateurs</Text>
                 <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
               </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-settings" as any)}
+              >
+                <Ionicons name="settings-outline" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Paramètres</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/ocr-scanner" as any)}
+              >
+                <Ionicons name="scan" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Scanner OCR</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-notifications" as any)}
+              >
+                <Ionicons name="notifications-outline" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Notifications admin</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
             </View>
           </View>
         )}

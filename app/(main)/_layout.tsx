@@ -13,6 +13,9 @@ export default function MainLayout() {
       <Stack.Screen name="chatbot" options={{ headerShown: false }} />
       <Stack.Screen name="admin-users" options={{ headerShown: false }} />
       <Stack.Screen name="admin-clients" options={{ headerShown: false }} />
+      <Stack.Screen name="admin-settings" options={{ headerShown: false }} />
+      <Stack.Screen name="ocr-scanner" options={{ presentation: "modal", headerShown: false }} />
+      <Stack.Screen name="admin-notifications" options={{ headerShown: false }} />
     </Stack>
   );
 }

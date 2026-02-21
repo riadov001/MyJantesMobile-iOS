@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
+import { useAuth } from "@/lib/auth-context";
 
 interface MenuItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -35,6 +36,8 @@ function MenuItem({ icon, title, subtitle, onPress, iconColor }: MenuItemProps) 
 
 export default function MoreScreen() {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "superadmin";
 
   return (
     <View style={styles.container}>
@@ -67,8 +70,21 @@ export default function MoreScreen() {
           />
         </View>
 
+        {isAdmin && (
+          <View style={styles.menuSection}>
+            <Text style={styles.sectionTitle}>Comptabilit\u00e9</Text>
+            <MenuItem
+              icon="scan-outline"
+              title="Scanner un document"
+              subtitle="OCR pour extraire les donn\u00e9es"
+              onPress={() => router.push("/(main)/ocr-scanner" as any)}
+              iconColor="#F59E0B"
+            />
+          </View>
+        )}
+
         <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Informations légales</Text>
+          <Text style={styles.sectionTitle}>Informations l\u00e9gales</Text>
           <MenuItem
             icon="document-text-outline"
             title="Mentions légales"

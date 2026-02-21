@@ -110,7 +110,7 @@ export default function ReservationsScreen() {
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: reservationsRaw, isLoading, refetch } = useQuery({
+  const { data: reservationsRaw, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["reservations"],
     queryFn: reservationsApi.getAll,
     retry: 1,
@@ -140,9 +140,27 @@ export default function ReservationsScreen() {
 
       {isLoading ? (
         <ActivityIndicator size="large" color={Colors.primary} style={styles.loader} />
+      ) : isError ? (
+        <View style={styles.errorContainer}>
+          <Ionicons name="cloud-offline-outline" size={48} color={Colors.error} />
+          <Text style={styles.errorTitle}>Erreur de chargement</Text>
+          <Text style={styles.errorText}>
+            {(error as Error)?.message || "Impossible de charger les réservations. Veuillez réessayer."}
+          </Text>
+          <Pressable style={styles.retryButton} onPress={() => refetch()}>
+            <Ionicons name="refresh-outline" size={18} color="#fff" />
+            <Text style={styles.retryButtonText}>Réessayer</Text>
+          </Pressable>
+        </View>
       ) : (
         <FlatList
-          data={[...reservations].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())}
+          data={[...reservations].sort((a, b) => {
+            const dateA = a.date || a.createdAt || "";
+            const dateB = b.date || b.createdAt || "";
+            const timeA = dateA ? new Date(dateA).getTime() : 0;
+            const timeB = dateB ? new Date(dateB).getTime() : 0;
+            return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA);
+          })}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <ReservationCard reservation={item} />}
           contentContainerStyle={[
@@ -283,5 +301,39 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: "center",
     paddingHorizontal: 40,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 40,
+    gap: 8,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
+    marginTop: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    textAlign: "center",
+  },
+  retryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginTop: 12,
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: "#fff",
   },
 });
