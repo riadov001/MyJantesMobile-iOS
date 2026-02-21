@@ -99,3 +99,9 @@ lib/
 - Feb 2026: CustomAlert component replaces all native Alert.alert (glassmorphism dark theme)
 - Feb 2026: AI Chatbot screen added (app/(main)/chatbot.tsx) using /api/ai/assistant endpoint
 - Feb 2026: FloatingSupport updated with chatbot button (sparkles icon)
+- Feb 21 2026: Fixed expo-notifications crash in Expo Go (lazy require with try/catch)
+- Feb 21 2026: Fixed chatbot API field name (messages instead of message)
+- Feb 21 2026: Fixed quote detail empty content for pending quotes (shows processing message + request details)
+- Feb 21 2026: Fixed support form button hidden behind nav bar (moved to fixed bottom bar with safe area insets)
+- Feb 21 2026: Admin analytics dashboard added on home page (stats + quick actions, admin/super_admin only)
+- Feb 21 2026: Messages tab enabled in tab navigation (internal chat feature)

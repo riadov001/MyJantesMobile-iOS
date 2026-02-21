@@ -26,6 +26,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "calendar", selected: "calendar" }} />
         <Label>RDV</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="messages">
+        <Icon sf={{ default: "bubble.left.and.bubble.right", selected: "bubble.left.and.bubble.right.fill" }} />
+        <Label>Messages</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <Icon sf={{ default: "person", selected: "person.fill" }} />
         <Label>Profil</Label>
@@ -93,16 +97,17 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
+        name="messages"
+        options={{
+          title: "Messages",
+          tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles-outline" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: "Profil",
           tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="messages"
-        options={{
-          href: null,
         }}
       />
       <Tabs.Screen

@@ -68,15 +68,22 @@ export default function ChatbotScreen() {
       setHasUserSent(true);
 
       try {
-        const response = await apiCall<{ response?: string; message?: string }>(
+        const response = await apiCall<{ response?: string; message?: string; reply?: string; answer?: string; content?: string; data?: { response?: string } }>(
           "/api/ai/assistant",
           {
             method: "POST",
-            body: { message: text.trim(), mode: "chat" },
+            body: { messages: text.trim(), mode: "chat" },
           }
         );
 
-        const botReply = response.response || response.message || "Désolé, je n'ai pas pu traiter votre demande.";
+        const botReply = 
+          response.response || 
+          response.message || 
+          response.reply || 
+          response.answer || 
+          response.content || 
+          response.data?.response || 
+          "Désolé, je n'ai pas pu traiter votre demande.";
 
         const botMessage: Message = {
           id: generateId(),

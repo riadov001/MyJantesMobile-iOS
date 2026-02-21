@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Colors from "@/constants/colors";
@@ -28,6 +29,7 @@ const CATEGORIES = [
 export default function SupportScreen() {
   const { user } = useAuth();
   const { showAlert, AlertComponent } = useCustomAlert();
+  const insets = useSafeAreaInsets();
 
   const [name, setName] = useState(
     user ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() : ""
@@ -165,26 +167,29 @@ export default function SupportScreen() {
             />
           </View>
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.submitButton,
-              !canSubmit && styles.submitButtonDisabled,
-              pressed && canSubmit && styles.submitButtonPressed,
-            ]}
-            onPress={handleSubmit}
-            disabled={!canSubmit || loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <Ionicons name="send" size={18} color="#fff" style={{ marginRight: 8 }} />
-                <Text style={styles.submitButtonText}>Envoyer</Text>
-              </>
-            )}
-          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <View style={[styles.bottomBar, { paddingBottom: Platform.OS === "web" ? 34 : Math.max(insets.bottom, 16) }]}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.submitButton,
+            !canSubmit && styles.submitButtonDisabled,
+            pressed && canSubmit && styles.submitButtonPressed,
+          ]}
+          onPress={handleSubmit}
+          disabled={!canSubmit || loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <>
+              <Ionicons name="send" size={18} color="#fff" style={{ marginRight: 8 }} />
+              <Text style={styles.submitButtonText}>Envoyer</Text>
+            </>
+          )}
+        </Pressable>
+      </View>
       {AlertComponent}
     </View>
   );
@@ -224,7 +229,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 120,
+    paddingBottom: 40,
   },
   field: {
     marginBottom: 18,
@@ -277,6 +282,13 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontFamily: "Inter_600SemiBold",
   },
+  bottomBar: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+    backgroundColor: Colors.background,
+  },
   submitButton: {
     flexDirection: "row",
     backgroundColor: Colors.primary,
@@ -284,7 +296,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 8,
   },
   submitButtonDisabled: {
     opacity: 0.5,

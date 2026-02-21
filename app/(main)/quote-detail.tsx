@@ -137,6 +137,12 @@ export default function QuoteDetailScreen() {
   const statusLower = quote.status?.toLowerCase() || "";
   const canRespond = (statusLower === "pending" || statusLower === "approved") && !!viewToken;
 
+  const requestDetails = (quote as any).requestDetails || (quote as any).description || "";
+  const serviceId = (quote as any).serviceId || "";
+  const serviceName = (quote as any).service?.name || (quote as any).serviceName || "";
+  const isPending = statusLower === "pending" || statusLower === "en_attente";
+  const hasNoContent = quoteItems.length === 0 && totalTTCNum === 0;
+
   const pdfUrl = viewToken ? `${API_BASE}/api/public/quotes/${viewToken}/pdf` : null;
 
   const handleDownloadPdf = async () => {
@@ -241,6 +247,43 @@ export default function QuoteDetailScreen() {
             <Text style={styles.expiryText}>Valide jusqu'au {formattedExpiry}</Text>
           )}
         </View>
+
+        {isPending && hasNoContent && (
+          <View style={styles.processingCard}>
+            <View style={styles.processingIcon}>
+              <Ionicons name="hourglass-outline" size={24} color={Colors.primary} />
+            </View>
+            <Text style={styles.processingTitle}>Demande en cours de traitement</Text>
+            <Text style={styles.processingText}>
+              Votre demande est en cours de traitement par notre équipe. Vous recevrez un devis détaillé prochainement.
+            </Text>
+          </View>
+        )}
+
+        {serviceName && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="construct-outline" size={18} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>Service demandé</Text>
+            </View>
+            <View style={styles.serviceRow}>
+              <View style={styles.serviceIcon}>
+                <Ionicons name="checkmark" size={14} color={Colors.primary} />
+              </View>
+              <Text style={styles.serviceName}>{serviceName}</Text>
+            </View>
+          </View>
+        )}
+
+        {requestDetails && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="document-text-outline" size={18} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>Détails de la demande</Text>
+            </View>
+            <Text style={styles.notesText}>{requestDetails}</Text>
+          </View>
+        )}
 
         {quoteItems.length > 0 && (
           <View style={styles.section}>
@@ -459,6 +502,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
     gap: 8,
+  },
+  processingCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: "center",
+    gap: 12,
+  },
+  processingIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.acceptedBg,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  processingTitle: {
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
+    textAlign: "center",
+  },
+  processingText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 20,
   },
   statusBadgeLarge: {
     flexDirection: "row",

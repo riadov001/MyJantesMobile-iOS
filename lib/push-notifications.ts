@@ -1,22 +1,30 @@
-import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 import { notificationsApi, Notification as AppNotification } from "@/lib/api";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowInForeground: true,
-  }),
-});
+let Notifications: any = null;
+try {
+  Notifications = require("expo-notifications");
+} catch {}
+
+// Initialize notification handler if available
+if (Notifications) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowInForeground: true,
+    }),
+  });
+}
 
 let lastCheckedAt: string | null = null;
 let pollingInterval: ReturnType<typeof setInterval> | null = null;
 
 export async function registerForPushNotificationsAsync(): Promise<string | null> {
+  if (!Notifications) return null;
   if (Platform.OS === "web") return null;
 
   if (!Device.isDevice) {
@@ -68,6 +76,8 @@ function getNotificationIcon(type: string): string {
 }
 
 async function showLocalNotification(notification: AppNotification) {
+  if (!Notifications) return;
+  
   await Notifications.scheduleNotificationAsync({
     content: {
       title: notification.title,
@@ -111,7 +121,9 @@ export async function checkForNewNotifications() {
       lastCheckedAt = new Date().toISOString();
     }
 
-    await Notifications.setBadgeCountAsync(unread.length);
+    if (Notifications) {
+      await Notifications.setBadgeCountAsync(unread.length);
+    }
   } catch {}
 }
 
@@ -135,7 +147,8 @@ export function stopNotificationPolling() {
 }
 
 export function addNotificationResponseListener(
-  callback: (response: Notifications.NotificationResponse) => void
+  callback: (response: any) => void
 ) {
+  if (!Notifications) return { remove: () => {} };
   return Notifications.addNotificationResponseReceivedListener(callback);
 }

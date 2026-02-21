@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
-import { servicesApi, quotesApi, invoicesApi, reservationsApi, notificationsApi, Service } from "@/lib/api";
+import { servicesApi, quotesApi, invoicesApi, reservationsApi, notificationsApi, adminAnalyticsApi, Service } from "@/lib/api";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
 
@@ -53,6 +53,14 @@ export default function HomeScreen() {
   const invoices = Array.isArray(invoicesRaw) ? invoicesRaw : [];
   const reservations = Array.isArray(reservationsRaw) ? reservationsRaw : [];
 
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "superadmin";
+
+  const { data: analyticsData, refetch: refetchAnalytics } = useQuery({
+    queryKey: ["admin-analytics"],
+    queryFn: adminAnalyticsApi.get,
+    enabled: isAdmin,
+  });
+
   const { data: notificationsRaw = [] } = useQuery({
     queryKey: ["notifications"],
     queryFn: notificationsApi.getAll,
@@ -63,7 +71,9 @@ export default function HomeScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([refetchServices(), refetchQuotes(), refetchInvoices(), refetchReservations()]);
+    const refetches = [refetchServices(), refetchQuotes(), refetchInvoices(), refetchReservations()];
+    if (isAdmin) refetches.push(refetchAnalytics());
+    await Promise.all(refetches);
     setRefreshing(false);
   }, []);
 
@@ -118,6 +128,81 @@ export default function HomeScreen() {
             contentFit="contain"
           />
         </View>
+
+        {isAdmin && (
+          <View style={styles.adminDashboard}>
+            <View style={styles.adminHeader}>
+              <Text style={styles.adminTitle}>Tableau de bord</Text>
+              <View style={styles.adminBadge}>
+                <Text style={styles.adminBadgeText}>Admin</Text>
+              </View>
+            </View>
+
+            <View style={styles.adminStatsGrid}>
+              <View style={styles.adminStatCard}>
+                <Ionicons name="people-outline" size={20} color={Colors.primary} />
+                <Text style={[styles.adminStatNumber, { color: Colors.primary }]}>
+                  {analyticsData?.totalClients ?? analyticsData?.clients ?? 0}
+                </Text>
+                <Text style={styles.adminStatLabel}>Clients</Text>
+              </View>
+              <View style={styles.adminStatCard}>
+                <Ionicons name="documents-outline" size={20} color={Colors.primary} />
+                <Text style={[styles.adminStatNumber, { color: Colors.primary }]}>
+                  {analyticsData?.totalQuotes ?? analyticsData?.quotes ?? 0}
+                </Text>
+                <Text style={styles.adminStatLabel}>Devis</Text>
+              </View>
+              <View style={styles.adminStatCard}>
+                <Ionicons name="receipt-outline" size={20} color={Colors.primary} />
+                <Text style={[styles.adminStatNumber, { color: Colors.primary }]}>
+                  {analyticsData?.totalInvoices ?? analyticsData?.invoices ?? 0}
+                </Text>
+                <Text style={styles.adminStatLabel}>Factures</Text>
+              </View>
+              <View style={styles.adminStatCard}>
+                <Ionicons name="cash-outline" size={20} color={Colors.accepted} />
+                <Text style={[styles.adminStatNumber, { color: Colors.accepted }]}>
+                  {(analyticsData?.totalRevenue ?? analyticsData?.revenue ?? 0).toLocaleString?.("fr-FR", { maximumFractionDigits: 0 }) ?? "0"}€
+                </Text>
+                <Text style={styles.adminStatLabel}>CA</Text>
+              </View>
+              <View style={styles.adminStatCard}>
+                <Ionicons name="time-outline" size={20} color={Colors.pending} />
+                <Text style={[styles.adminStatNumber, { color: Colors.pending }]}>
+                  {analyticsData?.pendingQuotes ?? 0}
+                </Text>
+                <Text style={styles.adminStatLabel}>En attente</Text>
+              </View>
+              <View style={styles.adminStatCard}>
+                <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
+                <Text style={[styles.adminStatNumber, { color: Colors.primary }]}>
+                  {analyticsData?.activeReservations ?? 0}
+                </Text>
+                <Text style={styles.adminStatLabel}>RDV actifs</Text>
+              </View>
+            </View>
+
+            <View style={styles.adminActions}>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/(tabs)/more" as any)}
+              >
+                <Ionicons name="people" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Gérer les clients</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/(tabs)/more" as any)}
+              >
+                <Ionicons name="shield-checkmark" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Gérer les utilisateurs</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+            </View>
+          </View>
+        )}
 
         <Pressable
           style={({ pressed }) => [styles.ctaCard, pressed && styles.ctaCardPressed]}
@@ -392,5 +477,82 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_500Medium",
     color: Colors.primary,
+  },
+  adminDashboard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 16,
+    marginBottom: 20,
+  },
+  adminHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  adminTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    color: Colors.text,
+  },
+  adminBadge: {
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  adminBadgeText: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
+  },
+  adminStatsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 14,
+  },
+  adminStatCard: {
+    width: "31%" as any,
+    flexBasis: "31%",
+    backgroundColor: Colors.surfaceSecondary,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 12,
+    alignItems: "center",
+    gap: 4,
+  },
+  adminStatNumber: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+  },
+  adminStatLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
+    textAlign: "center" as const,
+  },
+  adminActions: {
+    gap: 8,
+  },
+  adminActionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surfaceSecondary,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 10,
+  },
+  adminActionText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
   },
 });
