@@ -110,3 +110,5 @@ lib/
 - Feb 21 2026: Change password form in profile (security tab with strength validation)
 - Feb 21 2026: Notification preferences (push, email, SMS) in profile with API sync
 - Feb 21 2026: Profile reorganized with 3 tabs: Infos, Sécurité, Notifications
+- Feb 21 2026: Admin CRUD pages: admin-quotes.tsx (list, filter, edit status, delete), admin-invoices.tsx (list, create, edit, delete, revenue summary), admin-reservations.tsx (list, create, edit, delete)
+- Feb 21 2026: Home page admin quick actions updated with links to devis, factures, réservations management
