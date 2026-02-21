@@ -105,3 +105,8 @@ lib/
 - Feb 21 2026: Fixed support form button hidden behind nav bar (moved to fixed bottom bar with safe area insets)
 - Feb 21 2026: Admin analytics dashboard added on home page (stats + quick actions, admin/super_admin only)
 - Feb 21 2026: Messages tab enabled in tab navigation (internal chat feature)
+- Feb 21 2026: Multi-step forgot password flow (email → code → new password with strength indicators)
+- Feb 21 2026: Biometric authentication (Face ID/fingerprint) on login + profile security settings
+- Feb 21 2026: Change password form in profile (security tab with strength validation)
+- Feb 21 2026: Notification preferences (push, email, SMS) in profile with API sync
+- Feb 21 2026: Profile reorganized with 3 tabs: Infos, Sécurité, Notifications
