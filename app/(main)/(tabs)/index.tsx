@@ -186,7 +186,7 @@ export default function HomeScreen() {
             <View style={styles.adminActions}>
               <Pressable
                 style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/(tabs)/more" as any)}
+                onPress={() => router.push("/(main)/admin-clients" as any)}
               >
                 <Ionicons name="people" size={18} color={Colors.primary} />
                 <Text style={styles.adminActionText}>Gérer les clients</Text>
@@ -194,7 +194,7 @@ export default function HomeScreen() {
               </Pressable>
               <Pressable
                 style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/(tabs)/more" as any)}
+                onPress={() => router.push("/(main)/admin-users" as any)}
               >
                 <Ionicons name="shield-checkmark" size={18} color={Colors.primary} />
                 <Text style={styles.adminActionText}>Gérer les utilisateurs</Text>
