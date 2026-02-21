@@ -142,42 +142,42 @@ export default function HomeScreen() {
               <View style={styles.adminStatCard}>
                 <Ionicons name="people-outline" size={20} color={Colors.primary} />
                 <Text style={[styles.adminStatNumber, { color: Colors.primary }]}>
-                  {analyticsData?.totalClients ?? analyticsData?.clients ?? 0}
+                  {typeof analyticsData?.totalClients === "number" ? analyticsData.totalClients : (typeof analyticsData?.clients === "number" ? analyticsData.clients : (Array.isArray(analyticsData?.clients) ? analyticsData.clients.length : 0))}
                 </Text>
                 <Text style={styles.adminStatLabel}>Clients</Text>
               </View>
               <View style={styles.adminStatCard}>
                 <Ionicons name="documents-outline" size={20} color={Colors.primary} />
                 <Text style={[styles.adminStatNumber, { color: Colors.primary }]}>
-                  {analyticsData?.totalQuotes ?? analyticsData?.quotes ?? 0}
+                  {typeof analyticsData?.totalQuotes === "number" ? analyticsData.totalQuotes : (typeof analyticsData?.quotes === "number" ? analyticsData.quotes : (Array.isArray(analyticsData?.quotes) ? analyticsData.quotes.length : 0))}
                 </Text>
                 <Text style={styles.adminStatLabel}>Devis</Text>
               </View>
               <View style={styles.adminStatCard}>
                 <Ionicons name="receipt-outline" size={20} color={Colors.primary} />
                 <Text style={[styles.adminStatNumber, { color: Colors.primary }]}>
-                  {analyticsData?.totalInvoices ?? analyticsData?.invoices ?? 0}
+                  {typeof analyticsData?.totalInvoices === "number" ? analyticsData.totalInvoices : (typeof analyticsData?.invoices === "number" ? analyticsData.invoices : (Array.isArray(analyticsData?.invoices) ? analyticsData.invoices.length : 0))}
                 </Text>
                 <Text style={styles.adminStatLabel}>Factures</Text>
               </View>
               <View style={styles.adminStatCard}>
                 <Ionicons name="cash-outline" size={20} color={Colors.accepted} />
                 <Text style={[styles.adminStatNumber, { color: Colors.accepted }]}>
-                  {(analyticsData?.totalRevenue ?? analyticsData?.revenue ?? 0).toLocaleString?.("fr-FR", { maximumFractionDigits: 0 }) ?? "0"}€
+                  {(() => { const rev = analyticsData?.totalRevenue ?? analyticsData?.revenue; const num = typeof rev === "number" ? rev : 0; return num.toLocaleString("fr-FR", { maximumFractionDigits: 0 }); })()}€
                 </Text>
                 <Text style={styles.adminStatLabel}>CA</Text>
               </View>
               <View style={styles.adminStatCard}>
                 <Ionicons name="time-outline" size={20} color={Colors.pending} />
                 <Text style={[styles.adminStatNumber, { color: Colors.pending }]}>
-                  {analyticsData?.pendingQuotes ?? 0}
+                  {typeof analyticsData?.pendingQuotes === "number" ? analyticsData.pendingQuotes : 0}
                 </Text>
                 <Text style={styles.adminStatLabel}>En attente</Text>
               </View>
               <View style={styles.adminStatCard}>
                 <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
                 <Text style={[styles.adminStatNumber, { color: Colors.primary }]}>
-                  {analyticsData?.activeReservations ?? 0}
+                  {typeof analyticsData?.activeReservations === "number" ? analyticsData.activeReservations : 0}
                 </Text>
                 <Text style={styles.adminStatLabel}>RDV actifs</Text>
               </View>
