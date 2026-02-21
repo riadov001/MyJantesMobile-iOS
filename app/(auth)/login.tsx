@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,14 +18,65 @@ import { useAuth } from "@/lib/auth-context";
 import Colors from "@/constants/colors";
 import { useCustomAlert } from "@/components/CustomAlert";
 
+let LocalAuthentication: any = null;
+if (Platform.OS !== "web") {
+  try {
+    LocalAuthentication = require("expo-local-authentication");
+  } catch {}
+}
+
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
-  const { login } = useAuth();
+  const { login, biometricLogin } = useAuth();
   const { showAlert, AlertComponent } = useCustomAlert();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricType, setBiometricType] = useState("");
+
+  useEffect(() => {
+    checkBiometricAvailability();
+  }, []);
+
+  const checkBiometricAvailability = async () => {
+    if (Platform.OS === "web" || !LocalAuthentication) return;
+    try {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      if (compatible && enrolled) {
+        const SecureStore = require("expo-secure-store");
+        const biometricSetting = await SecureStore.getItemAsync("biometric_enabled");
+        if (biometricSetting === "true") {
+          setBiometricAvailable(true);
+          const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
+          if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+            setBiometricType("Face ID");
+          } else {
+            setBiometricType("Empreinte");
+          }
+        }
+      }
+    } catch {}
+  };
+
+  const handleBiometricLogin = async () => {
+    setLoading(true);
+    try {
+      const success = await biometricLogin();
+      if (success) {
+        setTimeout(() => {
+          router.replace("/(main)/(tabs)" as any);
+        }, 50);
+      } else {
+        showAlert({ type: "error", title: "Erreur", message: "Authentification biométrique échouée. Veuillez vous connecter avec vos identifiants.", buttons: [{ text: "OK", style: "primary" }] });
+        setLoading(false);
+      }
+    } catch {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -144,6 +195,17 @@ export default function LoginScreen() {
           >
             <Text style={styles.registerBtnText}>Créer un compte</Text>
           </Pressable>
+
+          {biometricAvailable && (
+            <Pressable
+              style={({ pressed }) => [styles.biometricBtn, pressed && styles.biometricBtnPressed]}
+              onPress={handleBiometricLogin}
+              disabled={loading}
+            >
+              <Ionicons name="finger-print" size={22} color={Colors.primary} />
+              <Text style={styles.biometricBtnText}>Se connecter avec {biometricType}</Text>
+            </Pressable>
+          )}
 
           <View style={styles.versionContainer}>
             <Text style={styles.versionText}>v1.0</Text>
@@ -280,6 +342,25 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontSize: 16,
     fontFamily: "Inter_600SemiBold",
+  },
+  biometricBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    borderRadius: 12,
+    height: 52,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  biometricBtnPressed: {
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  biometricBtnText: {
+    color: Colors.primary,
+    fontSize: 15,
+    fontFamily: "Inter_500Medium",
   },
   versionContainer: {
     alignItems: "center",

@@ -6,6 +6,13 @@ import { router } from "expo-router";
 import { authApi, UserProfile, LoginData, RegisterData, setSessionCookie } from "./api";
 import { registerForPushNotificationsAsync, startNotificationPolling, stopNotificationPolling, addNotificationResponseListener } from "./push-notifications";
 
+let LocalAuthentication: any = null;
+if (Platform.OS !== "web") {
+  try {
+    LocalAuthentication = require("expo-local-authentication");
+  } catch {}
+}
+
 interface AuthContextValue {
   user: UserProfile | null;
   isLoading: boolean;
@@ -14,6 +21,7 @@ interface AuthContextValue {
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  biometricLogin: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -132,6 +140,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {}
   };
 
+  const biometricLogin = async (): Promise<boolean> => {
+    if (Platform.OS === "web" || !LocalAuthentication) return false;
+    try {
+      const biometricSetting = await getToken("biometric_enabled");
+      if (biometricSetting !== "true") return false;
+
+      const savedCookie = await getToken("session_cookie");
+      if (!savedCookie) return false;
+
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Connexion à MyJantes",
+        cancelLabel: "Annuler",
+        disableDeviceFallback: false,
+      });
+
+      if (result.success) {
+        setSessionCookie(savedCookie);
+        try {
+          const userData = await authApi.getUser();
+          setUser(userData);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -141,6 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       refreshUser,
+      biometricLogin,
     }),
     [user, isLoading]
   );

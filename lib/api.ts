@@ -248,6 +248,27 @@ export const authApi = {
       method: "POST",
       body: { email },
     }),
+
+  resetPassword: (email: string, token: string, newPassword: string) =>
+    apiCall("/api/auth/reset-password", {
+      method: "POST",
+      body: { email, token, newPassword },
+    }),
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiCall("/api/auth/change-password", {
+      method: "POST",
+      body: { currentPassword, newPassword },
+    }),
+
+  updateNotificationPreferences: (preferences: { push?: boolean; email?: boolean; sms?: boolean }) =>
+    apiCall("/api/auth/notification-preferences", {
+      method: "PUT",
+      body: preferences,
+    }),
+
+  getNotificationPreferences: () =>
+    apiCall<{ push: boolean; email: boolean; sms: boolean }>("/api/auth/notification-preferences"),
 };
 
 export const servicesApi = {
