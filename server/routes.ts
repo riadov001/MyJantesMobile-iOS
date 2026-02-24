@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "node:http";
 
-const EXTERNAL_API = "https://appmyjantes.mytoolsgroup.eu";
+const EXTERNAL_API = process.env.EXTERNAL_API_URL || "https://appmyjantes.mytoolsgroup.eu";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api", async (req: Request, res: Response, next: NextFunction) => {

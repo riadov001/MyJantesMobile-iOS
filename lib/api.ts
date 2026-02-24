@@ -2,8 +2,14 @@ import { fetch as expoFetch } from "expo/fetch";
 import { Platform } from "react-native";
 
 const getApiBase = () => {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
   if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location.hostname.includes('replit.dev')) {
     return `https://${window.location.hostname.replace(':8081', ':5000')}`;
+  }
+  if (process.env.EXPO_PUBLIC_DOMAIN) {
+    return `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
   }
   return "https://appmyjantes.mytoolsgroup.eu";
 };
