@@ -5,12 +5,12 @@ Application mobile Expo React Native pour MyJantes, un service professionnel de 
 
 ## Architecture
 - **Frontend**: Expo React Native (Expo Router, file-based routing)
-- **Backend**: API externe hébergée sur `appmyjantes.mytoolsgroup.eu`
+- **Backend**: API externe hébergée sur `appmyjantes5.mytoolsgroup.eu`
 - **Auth**: Sessions avec cookies (stockés via expo-secure-store / AsyncStorage)
 - **State**: React Query pour les données serveur, React Context pour l'auth
 
 ## API Backend
-Base URL: `https://appmyjantes.mytoolsgroup.eu`
+Base URL: `https://appmyjantes5.mytoolsgroup.eu`
 
 ### Endpoints principaux
 - `POST /api/register` - Inscription (email, password, firstName, lastName, role, etc.)
