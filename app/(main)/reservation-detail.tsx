@@ -12,7 +12,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
-import { reservationsApi, servicesApi, Reservation } from "@/lib/api";
+import { reservationsApi, adminReservationsApi, servicesApi, Reservation } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import Colors from "@/constants/colors";
 
 function getReservationStatusInfo(status: string) {
@@ -85,10 +86,12 @@ function InfoRow({ icon, label, value }: { icon: string; label: string; value: s
 export default function ReservationDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "superadmin";
 
   const { data: allReservationsRaw = [], isLoading } = useQuery({
-    queryKey: ["reservations"],
-    queryFn: reservationsApi.getAll,
+    queryKey: isAdmin ? ["admin-reservations"] : ["reservations"],
+    queryFn: isAdmin ? adminReservationsApi.getAll : reservationsApi.getAll,
   });
 
   const { data: allServicesRaw = [] } = useQuery({

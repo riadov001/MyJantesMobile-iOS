@@ -162,6 +162,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(userData);
           return true;
         } catch {
+          await removeToken("session_cookie");
+          await removeToken("biometric_enabled");
+          setSessionCookie(null);
           return false;
         }
       }

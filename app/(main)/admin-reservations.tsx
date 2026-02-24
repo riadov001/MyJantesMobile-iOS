@@ -151,7 +151,7 @@ export default function AdminReservationsScreen() {
       showAlert({
         type: "warning",
         title: "Supprimer la réservation",
-        message: `Supprimer la réservation #${reservation.id} ? Cette action est irréversible.`,
+        message: `Supprimer la réservation ${reservation.reference || reservation.reservationNumber || `#${reservation.id}`} ? Cette action est irréversible.`,
         buttons: [
           { text: "Annuler" },
           { text: "Supprimer", style: "primary", onPress: () => deleteMutation.mutate(reservation.id) },
@@ -183,7 +183,7 @@ export default function AdminReservationsScreen() {
           <View style={styles.cardHeader}>
             <View style={styles.idRow}>
               <Ionicons name="calendar-outline" size={16} color={Colors.primary} />
-              <Text style={styles.idText}>#{item.id}</Text>
+              <Text style={styles.idText}>{item.reference || item.reservationNumber || `RES-${item.id?.toString().slice(-6)}`}</Text>
             </View>
             <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
               <Ionicons name={statusInfo.icon} size={12} color={statusInfo.color} />

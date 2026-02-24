@@ -15,11 +15,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
-import { quotesApi, apiCall, Quote } from "@/lib/api";
+import { quotesApi, adminQuotesApi, apiCall, Quote } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import Colors from "@/constants/colors";
 import { useCustomAlert } from "@/components/CustomAlert";
 
-const API_BASE = "https://appmyjantes.mytoolsgroup.eu";
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || "https://appmyjantes5.mytoolsgroup.eu";
 
 function getStatusInfo(status: string) {
   const s = status?.toLowerCase() || "";
@@ -74,12 +75,23 @@ export default function QuoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
   const { showAlert, AlertComponent } = useCustomAlert();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "superadmin";
   const [accepting, setAccepting] = useState(false);
   const [rejecting, setRejecting] = useState(false);
 
   const { data: quote, isLoading, error } = useQuery({
-    queryKey: ["quote", id],
+    queryKey: ["quote", id, isAdmin],
     queryFn: async () => {
+      if (isAdmin) {
+        try {
+          const detail = await adminQuotesApi.getById(id!);
+          if (detail && detail.id) return detail;
+        } catch {}
+        const all = await adminQuotesApi.getAll();
+        const list = Array.isArray(all) ? all : [];
+        return list.find((q: any) => q.id === id) || null;
+      }
       try {
         const detail = await quotesApi.getById(id!);
         if (detail && detail.id) return detail;

@@ -70,7 +70,8 @@ export default function LoginScreen() {
           router.replace("/(main)/(tabs)" as any);
         }, 50);
       } else {
-        showAlert({ type: "error", title: "Erreur", message: "Authentification biométrique échouée. Veuillez vous connecter avec vos identifiants.", buttons: [{ text: "OK", style: "primary" }] });
+        setBiometricAvailable(false);
+        showAlert({ type: "error", title: "Session expirée", message: "Votre session a expiré. Veuillez vous reconnecter avec vos identifiants. La biométrie sera de nouveau disponible après.", buttons: [{ text: "OK", style: "primary" }] });
         setLoading(false);
       }
     } catch {

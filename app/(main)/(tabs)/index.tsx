@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
-import { servicesApi, quotesApi, invoicesApi, reservationsApi, notificationsApi, adminAnalyticsApi, Service } from "@/lib/api";
+import { servicesApi, quotesApi, invoicesApi, reservationsApi, notificationsApi, adminAnalyticsApi, adminQuotesApi, adminInvoicesApi, Service } from "@/lib/api";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
 
@@ -61,6 +61,21 @@ export default function HomeScreen() {
     enabled: isAdmin,
   });
 
+  const { data: adminQuotesRaw, refetch: refetchAdminQuotes } = useQuery({
+    queryKey: ["admin-quotes"],
+    queryFn: adminQuotesApi.getAll,
+    enabled: isAdmin,
+  });
+
+  const { data: adminInvoicesRaw, refetch: refetchAdminInvoices } = useQuery({
+    queryKey: ["admin-invoices"],
+    queryFn: adminInvoicesApi.getAll,
+    enabled: isAdmin,
+  });
+
+  const adminQuotes = Array.isArray(adminQuotesRaw) ? adminQuotesRaw : [];
+  const adminInvoices = Array.isArray(adminInvoicesRaw) ? adminInvoicesRaw : [];
+
   const { data: notificationsRaw = [] } = useQuery({
     queryKey: ["notifications"],
     queryFn: notificationsApi.getAll,
@@ -72,10 +87,10 @@ export default function HomeScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     const refetches = [refetchServices(), refetchQuotes(), refetchInvoices(), refetchReservations()];
-    if (isAdmin) refetches.push(refetchAnalytics());
+    if (isAdmin) refetches.push(refetchAnalytics(), refetchAdminQuotes(), refetchAdminInvoices());
     await Promise.all(refetches);
     setRefreshing(false);
-  }, []);
+  }, [isAdmin]);
 
   const pendingQuotes = quotes.filter((q) => q.status === "pending" || q.status === "en_attente");
   const acceptedQuotes = quotes.filter((q) => q.status === "accepted" || q.status === "accepté");
@@ -89,20 +104,22 @@ export default function HomeScreen() {
   });
   const greeting = user?.firstName ? `Bonjour ${user.firstName}` : "Bonjour";
 
-  const calculatedRevenue = invoices
+  const revenueSourceInvoices = isAdmin ? adminInvoices : invoices;
+  const calculatedRevenue = revenueSourceInvoices
     .filter((i: any) => { const s = i.status?.toLowerCase(); return s === 'paid' || s === 'payée' || s === 'payé'; })
     .reduce((sum: number, i: any) => sum + parseFloat(i.totalIncludingTax || i.totalTTC || '0'), 0);
   const displayRevenue = (() => {
-    const rev = analyticsData?.totalRevenue ?? analyticsData?.revenue;
-    const num = typeof rev === "number" ? rev : 0;
+    const rev = analyticsData?.totalRevenue ?? analyticsData?.revenue ?? analyticsData?.revenueTotal;
+    const num = typeof rev === "number" ? rev : (typeof rev === "string" ? parseFloat(rev) : 0);
     return num > 0 ? num : calculatedRevenue;
   })();
 
+  const quoteSource = isAdmin ? adminQuotes : quotes;
   const quoteStatusCounts = {
-    pending: quotes.filter((q: any) => q.status === 'pending' || q.status === 'en_attente').length,
-    accepted: quotes.filter((q: any) => q.status === 'accepted' || q.status === 'accepté').length,
-    rejected: quotes.filter((q: any) => q.status === 'rejected' || q.status === 'refusé').length,
-    completed: quotes.filter((q: any) => q.status === 'completed' || q.status === 'terminé').length,
+    pending: quoteSource.filter((q: any) => q.status === 'pending' || q.status === 'en_attente').length,
+    accepted: quoteSource.filter((q: any) => q.status === 'accepted' || q.status === 'accepté').length,
+    rejected: quoteSource.filter((q: any) => q.status === 'rejected' || q.status === 'refusé').length,
+    completed: quoteSource.filter((q: any) => q.status === 'completed' || q.status === 'terminé').length,
   };
   const maxQuoteCount = Math.max(quoteStatusCounts.pending, quoteStatusCounts.accepted, quoteStatusCounts.rejected, quoteStatusCounts.completed, 1);
 
