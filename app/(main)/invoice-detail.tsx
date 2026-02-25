@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
-import { invoicesApi, adminInvoicesApi, Invoice } from "@/lib/api";
+import { invoicesApi, Invoice } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import Colors from "@/constants/colors";
 
@@ -65,20 +65,9 @@ export default function InvoiceDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "superadmin";
-
   const { data: invoice, isLoading } = useQuery({
-    queryKey: ["invoice", id, isAdmin],
+    queryKey: ["invoice", id],
     queryFn: async () => {
-      if (isAdmin) {
-        try {
-          const detail = await adminInvoicesApi.getById(id!);
-          if (detail && detail.id) return detail;
-        } catch {}
-        const all = await adminInvoicesApi.getAll();
-        const list = Array.isArray(all) ? all : [];
-        return list.find((inv: any) => inv.id === id) || null;
-      }
       try {
         const detail = await invoicesApi.getById(id!);
         if (detail && detail.id) return detail;

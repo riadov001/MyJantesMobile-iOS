@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
-import { servicesApi, quotesApi, invoicesApi, reservationsApi, notificationsApi, adminAnalyticsApi, adminQuotesApi, adminInvoicesApi, Service } from "@/lib/api";
+import { servicesApi, quotesApi, invoicesApi, reservationsApi, notificationsApi, Service } from "@/lib/api";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
 
@@ -53,29 +53,6 @@ export default function HomeScreen() {
   const invoices = Array.isArray(invoicesRaw) ? invoicesRaw : [];
   const reservations = Array.isArray(reservationsRaw) ? reservationsRaw : [];
 
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "superadmin";
-
-  const { data: analyticsData, refetch: refetchAnalytics } = useQuery({
-    queryKey: ["admin-analytics"],
-    queryFn: adminAnalyticsApi.get,
-    enabled: isAdmin,
-  });
-
-  const { data: adminQuotesRaw, refetch: refetchAdminQuotes } = useQuery({
-    queryKey: ["admin-quotes"],
-    queryFn: adminQuotesApi.getAll,
-    enabled: isAdmin,
-  });
-
-  const { data: adminInvoicesRaw, refetch: refetchAdminInvoices } = useQuery({
-    queryKey: ["admin-invoices"],
-    queryFn: adminInvoicesApi.getAll,
-    enabled: isAdmin,
-  });
-
-  const adminQuotes = Array.isArray(adminQuotesRaw) ? adminQuotesRaw : [];
-  const adminInvoices = Array.isArray(adminInvoicesRaw) ? adminInvoicesRaw : [];
-
   const { data: notificationsRaw = [] } = useQuery({
     queryKey: ["notifications"],
     queryFn: notificationsApi.getAll,
@@ -86,11 +63,9 @@ export default function HomeScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    const refetches = [refetchServices(), refetchQuotes(), refetchInvoices(), refetchReservations()];
-    if (isAdmin) refetches.push(refetchAnalytics(), refetchAdminQuotes(), refetchAdminInvoices());
-    await Promise.all(refetches);
+    await Promise.all([refetchServices(), refetchQuotes(), refetchInvoices(), refetchReservations()]);
     setRefreshing(false);
-  }, [isAdmin]);
+  }, []);
 
   const pendingQuotes = quotes.filter((q) => q.status === "pending" || q.status === "en_attente");
   const acceptedQuotes = quotes.filter((q) => q.status === "accepted" || q.status === "accepté");
@@ -103,25 +78,6 @@ export default function HomeScreen() {
     return (s === "confirmed" || s === "confirmée" || s === "confirmé" || s === "pending" || s === "en_attente") && new Date(r.date) >= new Date();
   });
   const greeting = user?.firstName ? `Bonjour ${user.firstName}` : "Bonjour";
-
-  const revenueSourceInvoices = isAdmin ? adminInvoices : invoices;
-  const calculatedRevenue = revenueSourceInvoices
-    .filter((i: any) => { const s = i.status?.toLowerCase(); return s === 'paid' || s === 'payée' || s === 'payé'; })
-    .reduce((sum: number, i: any) => sum + parseFloat(i.totalIncludingTax || i.totalTTC || '0'), 0);
-  const displayRevenue = (() => {
-    const rev = analyticsData?.totalRevenue ?? analyticsData?.revenue ?? analyticsData?.revenueTotal;
-    const num = typeof rev === "number" ? rev : (typeof rev === "string" ? parseFloat(rev) : 0);
-    return num > 0 ? num : calculatedRevenue;
-  })();
-
-  const quoteSource = isAdmin ? adminQuotes : quotes;
-  const quoteStatusCounts = {
-    pending: quoteSource.filter((q: any) => q.status === 'pending' || q.status === 'en_attente').length,
-    accepted: quoteSource.filter((q: any) => q.status === 'accepted' || q.status === 'accepté').length,
-    rejected: quoteSource.filter((q: any) => q.status === 'rejected' || q.status === 'refusé').length,
-    completed: quoteSource.filter((q: any) => q.status === 'completed' || q.status === 'terminé').length,
-  };
-  const maxQuoteCount = Math.max(quoteStatusCounts.pending, quoteStatusCounts.accepted, quoteStatusCounts.rejected, quoteStatusCounts.completed, 1);
 
   return (
     <View style={styles.container}>
@@ -162,264 +118,6 @@ export default function HomeScreen() {
             contentFit="contain"
           />
         </View>
-
-        {isAdmin && (
-          <View style={styles.adminDashboard}>
-            <View style={styles.adminHeader}>
-              <Text style={styles.adminTitle}>Tableau de bord</Text>
-              <View style={styles.adminBadge}>
-                <Text style={styles.adminBadgeText}>Admin</Text>
-              </View>
-            </View>
-
-            <View style={styles.adminStatsGrid}>
-              <View style={styles.adminStatCard}>
-                <Ionicons name="people-outline" size={20} color={Colors.primary} />
-                <Text style={[styles.adminStatNumber, { color: Colors.primary }]}>
-                  {typeof analyticsData?.totalClients === "number" ? analyticsData.totalClients : (typeof analyticsData?.clients === "number" ? analyticsData.clients : (Array.isArray(analyticsData?.clients) ? analyticsData.clients.length : 0))}
-                </Text>
-                <Text style={styles.adminStatLabel}>Clients</Text>
-              </View>
-              <View style={styles.adminStatCard}>
-                <Ionicons name="documents-outline" size={20} color={Colors.primary} />
-                <Text style={[styles.adminStatNumber, { color: Colors.primary }]}>
-                  {typeof analyticsData?.totalQuotes === "number" ? analyticsData.totalQuotes : (typeof analyticsData?.quotes === "number" ? analyticsData.quotes : (Array.isArray(analyticsData?.quotes) ? analyticsData.quotes.length : 0))}
-                </Text>
-                <Text style={styles.adminStatLabel}>Devis</Text>
-              </View>
-              <View style={styles.adminStatCard}>
-                <Ionicons name="receipt-outline" size={20} color={Colors.primary} />
-                <Text style={[styles.adminStatNumber, { color: Colors.primary }]}>
-                  {typeof analyticsData?.totalInvoices === "number" ? analyticsData.totalInvoices : (typeof analyticsData?.invoices === "number" ? analyticsData.invoices : (Array.isArray(analyticsData?.invoices) ? analyticsData.invoices.length : 0))}
-                </Text>
-                <Text style={styles.adminStatLabel}>Factures</Text>
-              </View>
-              <View style={styles.adminStatCard}>
-                <Ionicons name="cash-outline" size={20} color={Colors.accepted} />
-                <Text style={[styles.adminStatNumber, { color: Colors.accepted }]}>
-                  {displayRevenue.toLocaleString("fr-FR", { maximumFractionDigits: 0 })}€
-                </Text>
-                <Text style={styles.adminStatLabel}>CA</Text>
-              </View>
-              <View style={styles.adminStatCard}>
-                <Ionicons name="time-outline" size={20} color={Colors.pending} />
-                <Text style={[styles.adminStatNumber, { color: Colors.pending }]}>
-                  {typeof analyticsData?.pendingQuotes === "number" ? analyticsData.pendingQuotes : 0}
-                </Text>
-                <Text style={styles.adminStatLabel}>En attente</Text>
-              </View>
-              <View style={styles.adminStatCard}>
-                <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
-                <Text style={[styles.adminStatNumber, { color: Colors.primary }]}>
-                  {typeof analyticsData?.activeReservations === "number" ? analyticsData.activeReservations : 0}
-                </Text>
-                <Text style={styles.adminStatLabel}>RDV actifs</Text>
-              </View>
-            </View>
-
-            <View style={styles.chartSection}>
-              <Text style={styles.chartSectionTitle}>Activité récente</Text>
-
-              <Text style={styles.chartSubTitle}>Répartition des devis</Text>
-              {[
-                { label: "En attente", count: quoteStatusCounts.pending, color: Colors.pending },
-                { label: "Acceptés", count: quoteStatusCounts.accepted, color: Colors.accepted },
-                { label: "Refusés", count: quoteStatusCounts.rejected, color: Colors.rejected },
-                { label: "Terminés", count: quoteStatusCounts.completed, color: Colors.primary },
-              ].map((item) => (
-                <View key={item.label} style={styles.chartBarRow}>
-                  <Text style={styles.chartBarLabel}>{item.label}</Text>
-                  <View style={styles.chartBarTrack}>
-                    <View style={[styles.chartBarFill, { width: `${(item.count / maxQuoteCount) * 100}%` as any, backgroundColor: item.color }]} />
-                  </View>
-                  <Text style={styles.chartBarValue}>{item.count}</Text>
-                </View>
-              ))}
-
-              <View style={styles.revenueIndicator}>
-                <View style={styles.revenueIndicatorLeft}>
-                  <Ionicons name="wallet-outline" size={18} color={Colors.accepted} />
-                  <Text style={styles.revenueIndicatorLabel}>CA factures payées</Text>
-                </View>
-                <Text style={styles.revenueIndicatorValue}>
-                  {calculatedRevenue.toLocaleString("fr-FR", { maximumFractionDigits: 0 })}€
-                </Text>
-              </View>
-            </View>
-
-            <Text style={styles.adminSectionLabel}>Documents</Text>
-            <View style={styles.adminActions}>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-quotes" as any)}
-              >
-                <Ionicons name="document-text" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Devis</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-invoices" as any)}
-              >
-                <Ionicons name="receipt" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Factures</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-credit-notes" as any)}
-              >
-                <Ionicons name="return-down-back" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Avoirs</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-delivery-notes" as any)}
-              >
-                <Ionicons name="cube" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Bons de livraison</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-repair-orders" as any)}
-              >
-                <Ionicons name="build" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Ordres de réparation</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-            </View>
-
-            <Text style={styles.adminSectionLabel}>Finance</Text>
-            <View style={styles.adminActions}>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-payments" as any)}
-              >
-                <Ionicons name="card" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Paiements</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-expenses" as any)}
-              >
-                <Ionicons name="trending-down" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Dépenses</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-accounting" as any)}
-              >
-                <Ionicons name="calculator" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Comptabilité</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-engagements" as any)}
-              >
-                <Ionicons name="git-compare" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Engagements</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-            </View>
-
-            <Text style={styles.adminSectionLabel}>Gestion</Text>
-            <View style={styles.adminActions}>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-reservations" as any)}
-              >
-                <Ionicons name="calendar" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Réservations</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-clients" as any)}
-              >
-                <Ionicons name="people" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Clients</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-users" as any)}
-              >
-                <Ionicons name="shield-checkmark" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Utilisateurs</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-services" as any)}
-              >
-                <Ionicons name="construct" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Services</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-reviews" as any)}
-              >
-                <Ionicons name="star" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Avis clients</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-export" as any)}
-              >
-                <Ionicons name="download" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Export & Audit</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-settings" as any)}
-              >
-                <Ionicons name="settings-outline" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Paramètres</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/admin-notifications" as any)}
-              >
-                <Ionicons name="notifications-outline" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Notifications admin</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/ocr-scanner" as any)}
-              >
-                <Ionicons name="scan" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Scanner OCR</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-            </View>
-
-            {(user?.role === "super_admin" || user?.role === "superadmin") && (
-              <>
-                <Text style={styles.adminSectionLabel}>Super Admin</Text>
-                <View style={styles.adminActions}>
-                  <Pressable
-                    style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                    onPress={() => router.push("/(main)/admin-garages" as any)}
-                  >
-                    <Ionicons name="business" size={18} color="#8B5CF6" />
-                    <Text style={styles.adminActionText}>Garages</Text>
-                    <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-                  </Pressable>
-                </View>
-              </>
-            )}
-          </View>
-        )}
 
         <Pressable
           style={({ pressed }) => [styles.ctaCard, pressed && styles.ctaCardPressed]}
@@ -471,48 +169,54 @@ export default function HomeScreen() {
               onPress={() => router.push("/(main)/(tabs)/invoices")}
             >
               <Ionicons name="receipt-outline" size={22} color={unpaidInvoices.length > 0 ? Colors.pending : Colors.textSecondary} />
-              <Text style={[styles.statNumber, { color: unpaidInvoices.length > 0 ? Colors.pending : Colors.textSecondary }]}>
-                {invoices.length}
-              </Text>
+              <Text style={[styles.statNumber, { color: unpaidInvoices.length > 0 ? Colors.pending : Colors.textSecondary }]}>{unpaidInvoices.length}</Text>
+              <Text style={styles.statLabel}>Impayées</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.statCard, { backgroundColor: Colors.surfaceSecondary }]}
+              onPress={() => router.push("/(main)/(tabs)/invoices")}
+            >
+              <Ionicons name="document-text-outline" size={22} color={Colors.textSecondary} />
+              <Text style={[styles.statNumber, { color: Colors.textSecondary }]}>{invoices.length}</Text>
               <Text style={styles.statLabel}>Factures</Text>
             </Pressable>
             <Pressable
-              style={[styles.statCard, { backgroundColor: upcomingReservations.length > 0 ? "#0F1D3D" : Colors.surfaceSecondary }]}
+              style={[styles.statCard, { backgroundColor: upcomingReservations.length > 0 ? Colors.acceptedBg : Colors.surfaceSecondary }]}
               onPress={() => router.push("/(main)/(tabs)/reservations")}
             >
-              <Ionicons name="calendar-outline" size={22} color={upcomingReservations.length > 0 ? "#3B82F6" : Colors.textSecondary} />
-              <Text style={[styles.statNumber, { color: upcomingReservations.length > 0 ? "#3B82F6" : Colors.textSecondary }]}>
-                {upcomingReservations.length}
-              </Text>
-              <Text style={styles.statLabel}>RDV à venir</Text>
+              <Ionicons name="calendar-outline" size={22} color={upcomingReservations.length > 0 ? Colors.accepted : Colors.textSecondary} />
+              <Text style={[styles.statNumber, { color: upcomingReservations.length > 0 ? Colors.accepted : Colors.textSecondary }]}>{upcomingReservations.length}</Text>
+              <Text style={styles.statLabel}>RDV</Text>
             </Pressable>
           </View>
         )}
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Nos services</Text>
-          <Text style={styles.sectionCount}>{(Array.isArray(services) ? services : []).length} disponibles</Text>
-        </View>
+        <Text style={styles.sectionTitle}>Nos services</Text>
 
         {loadingServices ? (
-          <ActivityIndicator size="small" color={Colors.primary} style={styles.loader} />
+          <ActivityIndicator color={Colors.primary} style={{ marginTop: 20 }} />
+        ) : services.length === 0 ? (
+          <View style={styles.emptyServices}>
+            <Ionicons name="construct-outline" size={40} color={Colors.textTertiary} />
+            <Text style={styles.emptyText}>Aucun service disponible</Text>
+          </View>
         ) : (
           <View style={styles.servicesGrid}>
-            {(Array.isArray(services) ? services : []).filter((s: Service) => s.isActive).map((service: Service) => (
+            {services.map((service: Service) => (
               <Pressable
                 key={service.id}
                 style={({ pressed }) => [styles.serviceCard, pressed && styles.serviceCardPressed]}
-                onPress={() => router.push({ pathname: "/(main)/new-quote", params: { serviceId: service.id } })}
+                onPress={() => router.push("/(main)/new-quote")}
               >
                 <View style={styles.serviceIconContainer}>
-                  <Ionicons name="construct-outline" size={22} color={Colors.primary} />
+                  <Ionicons name="construct" size={24} color={Colors.primary} />
                 </View>
                 <Text style={styles.serviceName} numberOfLines={2}>
-                  {(service.name || "").trim()}
+                  {service.name}
                 </Text>
-                {parseFloat(service.basePrice || "0") > 0 && (
+                {service.price && (
                   <Text style={styles.servicePrice}>
-                    à partir de {parseFloat(service.basePrice).toFixed(0)}€
+                    à partir de {parseFloat(service.price).toLocaleString("fr-FR")}€
                   </Text>
                 )}
               </Pressable>
@@ -535,12 +239,12 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 24,
+    gap: 12,
   },
   greeting: {
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: "Inter_700Bold",
     color: Colors.text,
   },
@@ -551,31 +255,34 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   notifBtn: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.surface,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   notifBadge: {
     position: "absolute",
-    top: 2,
-    right: 2,
+    top: 6,
+    right: 6,
     backgroundColor: Colors.primary,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 4,
   },
   notifBadgeText: {
+    color: "#fff",
     fontSize: 10,
     fontFamily: "Inter_700Bold",
-    color: "#fff",
   },
   headerLogo: {
-    width: 90,
+    width: 50,
     height: 40,
   },
   ctaCard: {
@@ -594,6 +301,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+    gap: 14,
   },
   ctaIconContainer: {
     width: 48,
@@ -602,13 +310,12 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.2)",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 14,
   },
   ctaTextContainer: {
     flex: 1,
   },
   ctaTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontFamily: "Inter_700Bold",
     color: "#fff",
   },
@@ -621,14 +328,14 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: "row",
     gap: 10,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   statCard: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 14,
     alignItems: "center",
-    gap: 4,
+    gap: 6,
   },
   statNumber: {
     fontSize: 22,
@@ -639,24 +346,21 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     color: Colors.textSecondary,
   },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
   sectionTitle: {
     fontSize: 18,
     fontFamily: "Inter_700Bold",
     color: Colors.text,
+    marginBottom: 14,
   },
-  sectionCount: {
-    fontSize: 13,
+  emptyServices: {
+    alignItems: "center",
+    paddingVertical: 40,
+    gap: 10,
+  },
+  emptyText: {
+    fontSize: 14,
     fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-  },
-  loader: {
-    marginTop: 20,
+    color: Colors.textTertiary,
   },
   servicesGrid: {
     flexDirection: "row",
@@ -664,198 +368,33 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   serviceCard: {
-    width: "48%" as any,
+    width: "48%",
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 14,
+    padding: 16,
     borderWidth: 1,
     borderColor: Colors.border,
     gap: 8,
-    flexBasis: "48%",
   },
   serviceCardPressed: {
     backgroundColor: Colors.surfaceSecondary,
   },
   serviceIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: Colors.surfaceSecondary,
     justifyContent: "center",
     alignItems: "center",
   },
   serviceName: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
-    color: Colors.text,
-    lineHeight: 18,
-  },
-  servicePrice: {
-    fontSize: 12,
-    fontFamily: "Inter_500Medium",
-    color: Colors.primary,
-  },
-  adminDashboard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 16,
-    marginBottom: 20,
-  },
-  adminHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 14,
-  },
-  adminTitle: {
-    fontSize: 18,
-    fontFamily: "Inter_700Bold",
-    color: Colors.text,
-  },
-  adminBadge: {
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  adminBadgeText: {
-    fontSize: 11,
-    fontFamily: "Inter_700Bold",
-    color: "#fff",
-  },
-  adminStatsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 14,
-  },
-  adminStatCard: {
-    width: "31%" as any,
-    flexBasis: "31%",
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 12,
-    alignItems: "center",
-    gap: 4,
-  },
-  adminStatNumber: {
-    fontSize: 18,
-    fontFamily: "Inter_700Bold",
-  },
-  adminStatLabel: {
-    fontSize: 10,
-    fontFamily: "Inter_500Medium",
-    color: Colors.textSecondary,
-    textAlign: "center" as const,
-  },
-  adminSectionLabel: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
-    color: Colors.textTertiary,
-    textTransform: "uppercase" as const,
-    letterSpacing: 0.5,
-    marginBottom: 6,
-    marginTop: 10,
-    marginLeft: 2,
-  },
-  adminActions: {
-    gap: 8,
-  },
-  adminActionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    gap: 10,
-  },
-  adminActionText: {
-    flex: 1,
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
     color: Colors.text,
   },
-  chartSection: {
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 14,
-    marginBottom: 14,
-    gap: 10,
-  },
-  chartSectionTitle: {
-    fontSize: 16,
-    fontFamily: "Inter_700Bold",
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  chartSubTitle: {
+  servicePrice: {
     fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
-  },
-  chartBarRow: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    gap: 8,
-  },
-  chartBarLabel: {
-    width: 75,
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
-    color: Colors.textSecondary,
-  },
-  chartBarTrack: {
-    flex: 1,
-    height: 14,
-    backgroundColor: Colors.border,
-    borderRadius: 7,
-    overflow: "hidden" as const,
-  },
-  chartBarFill: {
-    height: 14,
-    borderRadius: 7,
-    minWidth: 4,
-  },
-  chartBarValue: {
-    width: 28,
-    fontSize: 12,
-    fontFamily: "Inter_700Bold",
-    color: Colors.text,
-    textAlign: "right" as const,
-  },
-  revenueIndicator: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    justifyContent: "space-between" as const,
-    backgroundColor: Colors.surface,
-    borderRadius: 10,
-    padding: 12,
-    marginTop: 4,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  revenueIndicatorLeft: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    gap: 8,
-  },
-  revenueIndicatorLabel: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-    color: Colors.textSecondary,
-  },
-  revenueIndicatorValue: {
-    fontSize: 16,
-    fontFamily: "Inter_700Bold",
-    color: Colors.accepted,
   },
 });

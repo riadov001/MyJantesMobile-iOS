@@ -10,26 +10,7 @@ export default function MainLayout() {
       <Stack.Screen name="invoice-detail" options={{ headerShown: false }} />
       <Stack.Screen name="reservation-detail" options={{ headerShown: false }} />
       <Stack.Screen name="chat-detail" options={{ headerShown: false }} />
-      <Stack.Screen name="chatbot" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-users" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-clients" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-settings" options={{ headerShown: false }} />
-      <Stack.Screen name="ocr-scanner" options={{ presentation: "modal", headerShown: false }} />
-      <Stack.Screen name="admin-notifications" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-quotes" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-invoices" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-reservations" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-services" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-payments" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-repair-orders" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-credit-notes" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-delivery-notes" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-expenses" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-accounting" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-reviews" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-export" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-engagements" options={{ headerShown: false }} />
-      <Stack.Screen name="admin-garages" options={{ headerShown: false }} />
+      <Stack.Screen name="delete-account" options={{ headerShown: false }} />
     </Stack>
   );
 }

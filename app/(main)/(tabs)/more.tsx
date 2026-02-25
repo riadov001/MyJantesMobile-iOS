@@ -6,7 +6,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
-import { useAuth } from "@/lib/auth-context";
 
 interface MenuItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -36,8 +35,6 @@ function MenuItem({ icon, title, subtitle, onPress, iconColor }: MenuItemProps) 
 
 export default function MoreScreen() {
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "superadmin";
 
   return (
     <View style={styles.container}>
@@ -70,114 +67,8 @@ export default function MoreScreen() {
           />
         </View>
 
-        {isAdmin && (
-          <>
-            <View style={styles.menuSection}>
-              <Text style={styles.sectionTitle}>Documents</Text>
-              <MenuItem
-                icon="return-down-back-outline"
-                title="Avoirs"
-                subtitle="Gérer les avoirs / notes de crédit"
-                onPress={() => router.push("/(main)/admin-credit-notes" as any)}
-                iconColor="#F59E0B"
-              />
-              <MenuItem
-                icon="cube-outline"
-                title="Bons de livraison"
-                subtitle="Gérer les bons de livraison"
-                onPress={() => router.push("/(main)/admin-delivery-notes" as any)}
-                iconColor="#3B82F6"
-              />
-              <MenuItem
-                icon="build-outline"
-                title="Ordres de réparation"
-                subtitle="Gérer les ordres de réparation"
-                onPress={() => router.push("/(main)/admin-repair-orders" as any)}
-                iconColor="#8B5CF6"
-              />
-            </View>
-
-            <View style={styles.menuSection}>
-              <Text style={styles.sectionTitle}>Finance</Text>
-              <MenuItem
-                icon="card-outline"
-                title="Paiements"
-                subtitle="Suivi des paiements et liens"
-                onPress={() => router.push("/(main)/admin-payments" as any)}
-                iconColor="#22C55E"
-              />
-              <MenuItem
-                icon="trending-down-outline"
-                title="Dépenses"
-                subtitle="Gérer les dépenses"
-                onPress={() => router.push("/(main)/admin-expenses" as any)}
-                iconColor="#EF4444"
-              />
-              <MenuItem
-                icon="calculator-outline"
-                title="Comptabilité"
-                subtitle="Rapports P&L, TVA, trésorerie"
-                onPress={() => router.push("/(main)/admin-accounting" as any)}
-                iconColor="#F59E0B"
-              />
-              <MenuItem
-                icon="git-compare-outline"
-                title="Engagements"
-                subtitle="Gérer les engagements"
-                onPress={() => router.push("/(main)/admin-engagements" as any)}
-                iconColor="#6366F1"
-              />
-            </View>
-
-            <View style={styles.menuSection}>
-              <Text style={styles.sectionTitle}>Gestion</Text>
-              <MenuItem
-                icon="construct-outline"
-                title="Services"
-                subtitle="Gérer les services proposés"
-                onPress={() => router.push("/(main)/admin-services" as any)}
-                iconColor="#14B8A6"
-              />
-              <MenuItem
-                icon="star-outline"
-                title="Avis clients"
-                subtitle="Modérer les avis"
-                onPress={() => router.push("/(main)/admin-reviews" as any)}
-                iconColor="#F59E0B"
-              />
-              <MenuItem
-                icon="download-outline"
-                title="Export & Audit"
-                subtitle="Exporter les données et journal d'audit"
-                onPress={() => router.push("/(main)/admin-export" as any)}
-                iconColor="#8B5CF6"
-              />
-              <MenuItem
-                icon="scan-outline"
-                title="Scanner un document"
-                subtitle="OCR pour extraire les données"
-                onPress={() => router.push("/(main)/ocr-scanner" as any)}
-                iconColor="#F59E0B"
-              />
-            </View>
-
-            {(user?.role === "super_admin" || user?.role === "superadmin") && (
-              <View style={styles.menuSection}>
-                <Text style={styles.sectionTitle}>Super Admin</Text>
-                <MenuItem
-                  icon="business-outline"
-                  title="Garages"
-                  subtitle="Gérer les garages"
-                  onPress={() => router.push("/(main)/admin-garages" as any)}
-                  iconColor="#8B5CF6"
-                />
-              </View>
-            )}
-          </>
-        )}
-
         <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Informations l\u00e9gales</Text>
+          <Text style={styles.sectionTitle}>Informations légales</Text>
           <MenuItem
             icon="document-text-outline"
             title="Mentions légales"

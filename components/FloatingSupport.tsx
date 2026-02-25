@@ -23,19 +23,6 @@ export function FloatingSupport() {
       >
         <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
       </Pressable>
-      <Pressable
-        style={({ pressed }) => [
-          styles.fab,
-          styles.fabChatbot,
-          {
-            bottom: baseBottom + 62,
-          },
-          pressed && styles.fabChatbotPressed,
-        ]}
-        onPress={() => router.push("/(main)/chatbot")}
-      >
-        <Ionicons name="sparkles" size={22} color="#fff" />
-      </Pressable>
     </View>
   );
 }
@@ -64,14 +51,5 @@ const styles = StyleSheet.create({
   fabGroup: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 100,
-  },
-  fabChatbot: {
-    backgroundColor: Colors.surfaceElevated,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  fabChatbotPressed: {
-    backgroundColor: Colors.surfaceSecondary,
-    transform: [{ scale: 0.95 }],
   },
 });

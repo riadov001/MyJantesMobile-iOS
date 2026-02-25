@@ -70,8 +70,7 @@ export default function ProfileScreen() {
   const [savingNotif, setSavingNotif] = useState(false);
 
   const isPro = user?.role === "client_professionnel";
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "superadmin";
-  const roleName = isAdmin ? "Administrateur" : isPro ? "Professionnel" : "Particulier";
+  const roleName = isPro ? "Professionnel" : "Particulier";
 
   useEffect(() => {
     checkBiometrics();
@@ -542,6 +541,40 @@ export default function ProfileScreen() {
           </View>
         )}
 
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Paramètres</Text>
+          <Pressable
+            style={({ pressed }) => [styles.settingsRow, pressed && { backgroundColor: Colors.surfaceSecondary }]}
+            onPress={() => router.push("/(main)/(tabs)/more")}
+          >
+            <View style={styles.settingInfo}>
+              <View style={[styles.settingIconContainer, { backgroundColor: "#6366F120" }]}>
+                <Ionicons name="settings-outline" size={20} color="#6366F1" />
+              </View>
+              <View style={styles.settingTextContainer}>
+                <Text style={styles.settingTitle}>Paramètres</Text>
+                <Text style={styles.settingDesc}>Mentions légales, support, version</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={Colors.textTertiary} />
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.settingsRow, pressed && { backgroundColor: Colors.surfaceSecondary }]}
+            onPress={() => router.push("/(main)/delete-account" as any)}
+          >
+            <View style={styles.settingInfo}>
+              <View style={[styles.settingIconContainer, { backgroundColor: "#EF444420" }]}>
+                <Ionicons name="trash-outline" size={20} color="#EF4444" />
+              </View>
+              <View style={styles.settingTextContainer}>
+                <Text style={[styles.settingTitle, { color: "#EF4444" }]}>Supprimer mon compte</Text>
+                <Text style={styles.settingDesc}>Suppression définitive et irréversible</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={Colors.textTertiary} />
+          </Pressable>
+        </View>
+
         <Pressable
           style={({ pressed }) => [styles.logoutBtn, pressed && styles.logoutBtnPressed]}
           onPress={handleLogout}
@@ -844,5 +877,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
     color: Colors.primary,
+  },
+  settingsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 14,
   },
 });
