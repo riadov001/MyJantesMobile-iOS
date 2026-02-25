@@ -247,13 +247,14 @@ export default function HomeScreen() {
               </View>
             </View>
 
+            <Text style={styles.adminSectionLabel}>Documents</Text>
             <View style={styles.adminActions}>
               <Pressable
                 style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
                 onPress={() => router.push("/(main)/admin-quotes" as any)}
               >
                 <Ionicons name="document-text" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Gérer les devis</Text>
+                <Text style={styles.adminActionText}>Devis</Text>
                 <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
               </Pressable>
               <Pressable
@@ -261,15 +262,79 @@ export default function HomeScreen() {
                 onPress={() => router.push("/(main)/admin-invoices" as any)}
               >
                 <Ionicons name="receipt" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Gérer les factures</Text>
+                <Text style={styles.adminActionText}>Factures</Text>
                 <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
               </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-credit-notes" as any)}
+              >
+                <Ionicons name="return-down-back" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Avoirs</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-delivery-notes" as any)}
+              >
+                <Ionicons name="cube" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Bons de livraison</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-repair-orders" as any)}
+              >
+                <Ionicons name="build" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Ordres de réparation</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+            </View>
+
+            <Text style={styles.adminSectionLabel}>Finance</Text>
+            <View style={styles.adminActions}>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-payments" as any)}
+              >
+                <Ionicons name="card" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Paiements</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-expenses" as any)}
+              >
+                <Ionicons name="trending-down" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Dépenses</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-accounting" as any)}
+              >
+                <Ionicons name="calculator" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Comptabilité</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-engagements" as any)}
+              >
+                <Ionicons name="git-compare" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Engagements</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+            </View>
+
+            <Text style={styles.adminSectionLabel}>Gestion</Text>
+            <View style={styles.adminActions}>
               <Pressable
                 style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
                 onPress={() => router.push("/(main)/admin-reservations" as any)}
               >
                 <Ionicons name="calendar" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Gérer les réservations</Text>
+                <Text style={styles.adminActionText}>Réservations</Text>
                 <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
               </Pressable>
               <Pressable
@@ -277,7 +342,7 @@ export default function HomeScreen() {
                 onPress={() => router.push("/(main)/admin-clients" as any)}
               >
                 <Ionicons name="people" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Gérer les clients</Text>
+                <Text style={styles.adminActionText}>Clients</Text>
                 <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
               </Pressable>
               <Pressable
@@ -285,7 +350,31 @@ export default function HomeScreen() {
                 onPress={() => router.push("/(main)/admin-users" as any)}
               >
                 <Ionicons name="shield-checkmark" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Gérer les utilisateurs</Text>
+                <Text style={styles.adminActionText}>Utilisateurs</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-services" as any)}
+              >
+                <Ionicons name="construct" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Services</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-reviews" as any)}
+              >
+                <Ionicons name="star" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Avis clients</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/admin-export" as any)}
+              >
+                <Ionicons name="download" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Export & Audit</Text>
                 <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
               </Pressable>
               <Pressable
@@ -298,21 +387,37 @@ export default function HomeScreen() {
               </Pressable>
               <Pressable
                 style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => router.push("/(main)/ocr-scanner" as any)}
-              >
-                <Ionicons name="scan" size={18} color={Colors.primary} />
-                <Text style={styles.adminActionText}>Scanner OCR</Text>
-                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
                 onPress={() => router.push("/(main)/admin-notifications" as any)}
               >
                 <Ionicons name="notifications-outline" size={18} color={Colors.primary} />
                 <Text style={styles.adminActionText}>Notifications admin</Text>
                 <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
               </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => router.push("/(main)/ocr-scanner" as any)}
+              >
+                <Ionicons name="scan" size={18} color={Colors.primary} />
+                <Text style={styles.adminActionText}>Scanner OCR</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+              </Pressable>
             </View>
+
+            {(user?.role === "super_admin" || user?.role === "superadmin") && (
+              <>
+                <Text style={styles.adminSectionLabel}>Super Admin</Text>
+                <View style={styles.adminActions}>
+                  <Pressable
+                    style={({ pressed }) => [styles.adminActionBtn, pressed && { opacity: 0.7 }]}
+                    onPress={() => router.push("/(main)/admin-garages" as any)}
+                  >
+                    <Ionicons name="business" size={18} color="#8B5CF6" />
+                    <Text style={styles.adminActionText}>Garages</Text>
+                    <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+                  </Pressable>
+                </View>
+              </>
+            )}
           </View>
         )}
 
@@ -646,6 +751,16 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     color: Colors.textSecondary,
     textAlign: "center" as const,
+  },
+  adminSectionLabel: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.textTertiary,
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    marginTop: 10,
+    marginLeft: 2,
   },
   adminActions: {
     gap: 8,

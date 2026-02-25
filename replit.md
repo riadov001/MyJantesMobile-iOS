@@ -1,7 +1,7 @@
 # MyJantes - Application Mobile
 
 ## Overview
-Application mobile Expo React Native pour MyJantes, un service professionnel de rénovation et personnalisation de jantes automobiles. L'app permet aux particuliers et professionnels de demander des devis gratuits en ligne.
+Application mobile Expo React Native pour MyJantes, un service professionnel de rénovation et personnalisation de jantes automobiles. L'app permet aux particuliers et professionnels de demander des devis gratuits en ligne. Toutes les fonctionnalités de la PWA sont disponibles sur mobile pour chaque rôle utilisateur.
 
 ## Architecture
 - **Frontend**: Expo React Native (Expo Router, file-based routing)
@@ -60,25 +60,60 @@ app/
     _layout.tsx
     login.tsx
     register.tsx
+    forgot-password.tsx
   (main)/               # App principale (authentifié)
     _layout.tsx
     (tabs)/
       _layout.tsx       # Tab navigation
-      index.tsx         # Accueil + liste services
+      index.tsx         # Accueil + dashboard admin + liste services
       quotes.tsx        # Historique des devis
-      profile.tsx       # Profil utilisateur
-      more.tsx          # Mentions légales, contact, etc.
+      invoices.tsx      # Historique des factures
+      reservations.tsx  # Historique des réservations
+      messages.tsx      # Conversations chat
+      notifications.tsx # Centre de notifications
+      profile.tsx       # Profil utilisateur (3 tabs: Infos, Sécurité, Notifications)
+      more.tsx          # Menu complet avec tous les liens admin
     new-quote.tsx       # Formulaire nouveau devis
-  support.tsx           # Formulaire de support (formSheet)
+    quote-detail.tsx    # Détail d'un devis
+    invoice-detail.tsx  # Détail d'une facture
+    reservation-detail.tsx # Détail d'une réservation
+    chat-detail.tsx     # Conversation chat
+    chatbot.tsx         # Assistant IA
+    ocr-scanner.tsx     # Scanner OCR de documents
+    admin-quotes.tsx    # Gestion admin devis (CRUD)
+    admin-invoices.tsx  # Gestion admin factures (CRUD)
+    admin-reservations.tsx # Gestion admin réservations (CRUD)
+    admin-clients.tsx   # Gestion admin clients
+    admin-users.tsx     # Gestion admin utilisateurs
+    admin-services.tsx  # Gestion admin services (CRUD)
+    admin-payments.tsx  # Gestion admin paiements + liens de paiement
+    admin-repair-orders.tsx # Gestion ordres de réparation (CRUD)
+    admin-credit-notes.tsx  # Gestion avoirs / notes de crédit
+    admin-delivery-notes.tsx # Gestion bons de livraison
+    admin-expenses.tsx  # Gestion dépenses (CRUD + catégories)
+    admin-accounting.tsx # Rapports comptables (P&L, TVA, trésorerie, FEC)
+    admin-reviews.tsx   # Gestion avis clients
+    admin-export.tsx    # Export données + journal d'audit
+    admin-engagements.tsx # Gestion engagements
+    admin-garages.tsx   # Gestion garages (super_admin only)
+    admin-settings.tsx  # Paramètres application
+    admin-notifications.tsx # Préférences notifications admin
+  support.tsx           # Formulaire de support
   legal.tsx             # Mentions légales
   privacy.tsx           # Politique de confidentialité
 components/
   FloatingSupport.tsx   # Bouton flottant support
   ErrorBoundary.tsx     # Error boundary
+  CustomAlert.tsx       # Alerte personnalisée glassmorphism
 lib/
-  api.ts                # Client API
-  auth-context.tsx      # Context d'authentification
+  api.ts                # Client API complet (28 modules API)
+  auth-context.tsx      # Context d'authentification + biométrie
   query-client.ts       # React Query config
+constants/
+  colors.ts             # Thème sombre (noir/rouge/blanc)
+server/
+  routes.ts             # Proxy API vers backend externe
+  index.ts              # Express server (port 5000)
 ```
 
 ## User Preferences
@@ -88,27 +123,25 @@ lib/
 - Font: Inter (Google Fonts)
 - Logo: cropped-Logo-2-1-768x543 intégré dans l'app
 
+## Admin Role Check Pattern
+```typescript
+const isAdmin = user?.role === "admin" || user?.role === "super_admin" || user?.role === "superadmin";
+const isSuperAdmin = user?.role === "super_admin" || user?.role === "superadmin";
+```
+
+## Key Technical Notes
+- Detail pages use admin API endpoints for admin users, client endpoints for regular users
+- Dashboard analytics uses admin quote/invoice data for revenue and status counts
+- Biometric auth auto-clears expired session credentials
+- API_BASE for detail pages uses `EXPO_PUBLIC_API_URL` env var with fallback to default
+- All admin screens follow the same pattern: list with search/filter, CRUD modals, confirmation alerts
+
 ## Recent Changes
 - Feb 2026: Initial build of MyJantes mobile app
 - Feb 2026: Thème sombre complet (noir/rouge/blanc)
-- Feb 2026: Section informations véhicule + scan OCR carte grise dans formulaire devis
 - Feb 2026: API admin/super_admin complètes intégrées dans lib/api.ts
-- Feb 2026: Formulaire support intégré en interne (plus de redirection PWA)
-- Feb 2026: Liens de paiement affichés sur factures en attente (paymentLink)
-- Feb 2026: Push notifications activées (expo-notifications, polling 30s, deep linking)
-- Feb 2026: CustomAlert component replaces all native Alert.alert (glassmorphism dark theme)
-- Feb 2026: AI Chatbot screen added (app/(main)/chatbot.tsx) using /api/ai/assistant endpoint
-- Feb 2026: FloatingSupport updated with chatbot button (sparkles icon)
-- Feb 21 2026: Fixed expo-notifications crash in Expo Go (lazy require with try/catch)
-- Feb 21 2026: Fixed chatbot API field name (messages instead of message)
-- Feb 21 2026: Fixed quote detail empty content for pending quotes (shows processing message + request details)
-- Feb 21 2026: Fixed support form button hidden behind nav bar (moved to fixed bottom bar with safe area insets)
-- Feb 21 2026: Admin analytics dashboard added on home page (stats + quick actions, admin/super_admin only)
-- Feb 21 2026: Messages tab enabled in tab navigation (internal chat feature)
-- Feb 21 2026: Multi-step forgot password flow (email → code → new password with strength indicators)
-- Feb 21 2026: Biometric authentication (Face ID/fingerprint) on login + profile security settings
-- Feb 21 2026: Change password form in profile (security tab with strength validation)
-- Feb 21 2026: Notification preferences (push, email, SMS) in profile with API sync
-- Feb 21 2026: Profile reorganized with 3 tabs: Infos, Sécurité, Notifications
-- Feb 21 2026: Admin CRUD pages: admin-quotes.tsx (list, filter, edit status, delete), admin-invoices.tsx (list, create, edit, delete, revenue summary), admin-reservations.tsx (list, create, edit, delete)
-- Feb 21 2026: Home page admin quick actions updated with links to devis, factures, réservations management
+- Feb 2026: Push notifications, biometric auth, AI chatbot
+- Feb 2026: Admin CRUD pages: quotes, invoices, reservations, clients, users, settings
+- Feb 25 2026: Added 11 new admin screens for full PWA parity: services, payments, repair orders, credit notes, delivery notes, expenses, accounting reports, reviews, export & audit, engagements, garages (super_admin)
+- Feb 25 2026: Dashboard reorganized with sections: Documents, Finance, Gestion, Super Admin
+- Feb 25 2026: More menu updated with all admin sections: Documents, Finance, Gestion, Super Admin
