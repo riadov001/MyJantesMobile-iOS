@@ -81,3 +81,6 @@ PORT = "5000"
 
 [userenv.production]
 PORT = "8081"
+
+[userenv.shared]
+EXTERNAL_API_URL = "https://MyJantesv6.replit.app"

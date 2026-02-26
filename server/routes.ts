@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "node:http";
 import pg from "pg";
 
-const EXTERNAL_API = process.env.EXTERNAL_API_URL || "https://appmyjantes5.mytoolsgroup.eu";
+const EXTERNAL_API = process.env.EXTERNAL_API_URL || "https://MyJantesv6.replit.app";
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
