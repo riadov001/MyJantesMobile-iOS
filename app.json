@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "MyJantes",
-    "slug": "myjantes",
+    "slug": "myjantesmobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -70,7 +70,7 @@
         "origin": "https://replit.com/"
       },
       "eas": {
-        "projectId": "82c69d4c-5b2d-4cd3-b6d4-5f5863dde820"
+        "projectId": "45e48f45-e421-4f67-9d02-d84a678fdfc5"
       }
     },
     "owner": "lastmytools"

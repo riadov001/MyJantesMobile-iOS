@@ -4,6 +4,108 @@ import { createServer, type Server } from "node:http";
 const EXTERNAL_API = process.env.EXTERNAL_API_URL || "https://appmyjantes5.mytoolsgroup.eu";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  app.delete("/api/users/me", async (req: Request, res: Response) => {
+    try {
+      const headers: Record<string, string> = {
+        "host": new URL(EXTERNAL_API).host,
+      };
+      if (req.headers["cookie"]) {
+        headers["cookie"] = req.headers["cookie"] as string;
+      }
+      if (req.headers["authorization"]) {
+        headers["authorization"] = req.headers["authorization"] as string;
+      }
+
+      const userRes = await fetch(`${EXTERNAL_API}/api/auth/user`, {
+        method: "GET",
+        headers,
+        redirect: "manual",
+      });
+
+      if (!userRes.ok) {
+        return res.status(401).json({ message: "Non authentifié. Veuillez vous reconnecter." });
+      }
+
+      const userData = await userRes.json() as any;
+      const userId = userData?.id || userData?.user?.id || userData?._id;
+
+      if (!userId) {
+        return res.status(400).json({ message: "Impossible d'identifier l'utilisateur." });
+      }
+
+      const deleteRes = await fetch(`${EXTERNAL_API}/api/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          ...headers,
+          "content-type": "application/json",
+        },
+        redirect: "manual",
+      });
+
+      if (deleteRes.ok || deleteRes.status === 204) {
+        return res.status(200).json({ message: "Compte supprimé avec succès." });
+      }
+
+      const selfDeleteRes = await fetch(`${EXTERNAL_API}/api/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          ...headers,
+          "content-type": "application/json",
+        },
+        redirect: "manual",
+      });
+
+      if (selfDeleteRes.ok || selfDeleteRes.status === 204) {
+        return res.status(200).json({ message: "Compte supprimé avec succès." });
+      }
+
+      const selfDeleteMe = await fetch(`${EXTERNAL_API}/api/users/me`, {
+        method: "DELETE",
+        headers: {
+          ...headers,
+          "content-type": "application/json",
+        },
+        redirect: "manual",
+      });
+
+      if (selfDeleteMe.ok || selfDeleteMe.status === 204) {
+        return res.status(200).json({ message: "Compte supprimé avec succès." });
+      }
+
+      const selfDeleteAccount = await fetch(`${EXTERNAL_API}/api/account/delete`, {
+        method: "POST",
+        headers: {
+          ...headers,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ userId, confirm: true }),
+        redirect: "manual",
+      });
+
+      if (selfDeleteAccount.ok || selfDeleteAccount.status === 204) {
+        return res.status(200).json({ message: "Compte supprimé avec succès." });
+      }
+
+      let errorBody = "";
+      try { errorBody = await selfDeleteAccount.text(); } catch {}
+      console.error("Account deletion failed - all endpoints tried:", {
+        userId,
+        adminStatus: deleteRes.status,
+        usersStatus: selfDeleteRes.status,
+        meStatus: selfDeleteMe.status,
+        accountStatus: selfDeleteAccount.status,
+        errorBody,
+      });
+
+      return res.status(500).json({
+        message: "La suppression du compte a échoué. Veuillez contacter le support."
+      });
+    } catch (err: any) {
+      console.error("Account deletion error:", err.message);
+      return res.status(502).json({ message: "Erreur de connexion au serveur. Veuillez réessayer." });
+    }
+  });
+
   app.use("/api", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const targetUrl = `${EXTERNAL_API}/api${req.url}`;
