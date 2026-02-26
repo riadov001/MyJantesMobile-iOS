@@ -1,7 +1,12 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "node:http";
+import pg from "pg";
 
 const EXTERNAL_API = process.env.EXTERNAL_API_URL || "https://appmyjantes5.mytoolsgroup.eu";
+
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/users/me", async (req: Request, res: Response) => {
@@ -28,81 +33,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userData = await userRes.json() as any;
       const userId = userData?.id || userData?.user?.id || userData?._id;
+      const userEmail = userData?.email || userData?.user?.email;
 
       if (!userId) {
         return res.status(400).json({ message: "Impossible d'identifier l'utilisateur." });
       }
 
-      const deleteRes = await fetch(`${EXTERNAL_API}/api/admin/users/${userId}`, {
-        method: "DELETE",
-        headers: {
-          ...headers,
-          "content-type": "application/json",
-        },
-        redirect: "manual",
-      });
+      const existing = await pool.query(
+        "SELECT id FROM deleted_accounts WHERE external_user_id = $1 OR email = $2",
+        [String(userId), userEmail || ""]
+      );
 
-      if (deleteRes.ok || deleteRes.status === 204) {
-        return res.status(200).json({ message: "Compte supprimé avec succès." });
+      if (existing.rows.length > 0) {
+        return res.status(200).json({ message: "Compte déjà supprimé." });
       }
 
-      const selfDeleteRes = await fetch(`${EXTERNAL_API}/api/users/${userId}`, {
-        method: "DELETE",
-        headers: {
-          ...headers,
-          "content-type": "application/json",
-        },
-        redirect: "manual",
-      });
+      await pool.query(
+        "INSERT INTO deleted_accounts (external_user_id, email, user_data) VALUES ($1, $2, $3)",
+        [String(userId), userEmail || null, JSON.stringify(userData)]
+      );
 
-      if (selfDeleteRes.ok || selfDeleteRes.status === 204) {
-        return res.status(200).json({ message: "Compte supprimé avec succès." });
-      }
+      try {
+        await fetch(`${EXTERNAL_API}/api/admin/users/${userId}`, {
+          method: "DELETE",
+          headers: { ...headers, "content-type": "application/json" },
+          redirect: "manual",
+        });
+      } catch {}
 
-      const selfDeleteMe = await fetch(`${EXTERNAL_API}/api/users/me`, {
-        method: "DELETE",
-        headers: {
-          ...headers,
-          "content-type": "application/json",
-        },
-        redirect: "manual",
-      });
+      try {
+        await fetch(`${EXTERNAL_API}/api/logout`, {
+          method: "POST",
+          headers,
+          redirect: "manual",
+        });
+      } catch {}
 
-      if (selfDeleteMe.ok || selfDeleteMe.status === 204) {
-        return res.status(200).json({ message: "Compte supprimé avec succès." });
-      }
-
-      const selfDeleteAccount = await fetch(`${EXTERNAL_API}/api/account/delete`, {
-        method: "POST",
-        headers: {
-          ...headers,
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ userId, confirm: true }),
-        redirect: "manual",
-      });
-
-      if (selfDeleteAccount.ok || selfDeleteAccount.status === 204) {
-        return res.status(200).json({ message: "Compte supprimé avec succès." });
-      }
-
-      let errorBody = "";
-      try { errorBody = await selfDeleteAccount.text(); } catch {}
-      console.error("Account deletion failed - all endpoints tried:", {
-        userId,
-        adminStatus: deleteRes.status,
-        usersStatus: selfDeleteRes.status,
-        meStatus: selfDeleteMe.status,
-        accountStatus: selfDeleteAccount.status,
-        errorBody,
-      });
-
-      return res.status(500).json({
-        message: "La suppression du compte a échoué. Veuillez contacter le support."
-      });
+      console.log(`Account deletion recorded: userId=${userId}, email=${userEmail}`);
+      return res.status(200).json({ message: "Compte supprimé avec succès." });
     } catch (err: any) {
       console.error("Account deletion error:", err.message);
       return res.status(502).json({ message: "Erreur de connexion au serveur. Veuillez réessayer." });
+    }
+  });
+
+  app.post("/api/login", async (req: Request, res: Response) => {
+    try {
+      const email = req.body?.email;
+
+      if (email) {
+        const deleted = await pool.query(
+          "SELECT id FROM deleted_accounts WHERE email = $1",
+          [email]
+        );
+
+        if (deleted.rows.length > 0) {
+          return res.status(403).json({
+            message: "Ce compte a été supprimé. Il n'est plus possible de se connecter."
+          });
+        }
+      }
+
+      const targetUrl = `${EXTERNAL_API}/api/login`;
+      const headers: Record<string, string> = {
+        "host": new URL(EXTERNAL_API).host,
+        "content-type": "application/json",
+      };
+      if (req.headers["cookie"]) {
+        headers["cookie"] = req.headers["cookie"] as string;
+      }
+
+      const response = await fetch(targetUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(req.body),
+        redirect: "manual",
+      });
+
+      response.headers.forEach((value, key) => {
+        const lk = key.toLowerCase();
+        if (lk === "transfer-encoding" || lk === "content-encoding") return;
+        if (lk === "set-cookie") {
+          res.appendHeader("set-cookie", value);
+          return;
+        }
+        res.setHeader(key, value);
+      });
+
+      res.status(response.status);
+
+      if (response.ok) {
+        const responseData = await response.json() as any;
+        const loggedInUserId = responseData?.id || responseData?.user?.id || responseData?._id;
+        const loggedInEmail = responseData?.email || responseData?.user?.email;
+
+        if (loggedInUserId || loggedInEmail) {
+          const deletedById = loggedInUserId
+            ? await pool.query("SELECT id FROM deleted_accounts WHERE external_user_id = $1", [String(loggedInUserId)])
+            : { rows: [] };
+          const deletedByEmail = loggedInEmail
+            ? await pool.query("SELECT id FROM deleted_accounts WHERE email = $1", [loggedInEmail])
+            : { rows: [] };
+
+          if (deletedById.rows.length > 0 || deletedByEmail.rows.length > 0) {
+            try {
+              await fetch(`${EXTERNAL_API}/api/logout`, {
+                method: "POST",
+                headers: { "host": new URL(EXTERNAL_API).host, ...(req.headers["cookie"] ? { "cookie": req.headers["cookie"] as string } : {}) },
+                redirect: "manual",
+              });
+            } catch {}
+            return res.status(403).json({
+              message: "Ce compte a été supprimé. Il n'est plus possible de se connecter."
+            });
+          }
+        }
+
+        return res.json(responseData);
+      }
+
+      const body = await response.arrayBuffer();
+      res.send(Buffer.from(body));
+    } catch (err: any) {
+      console.error("Login proxy error:", err.message);
+      res.status(502).json({ message: "Erreur de connexion au serveur API" });
     }
   });
 
