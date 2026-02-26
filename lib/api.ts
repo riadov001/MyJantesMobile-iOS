@@ -11,7 +11,7 @@ const getApiBase = () => {
   if (process.env.EXPO_PUBLIC_DOMAIN) {
     return `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
   }
-  return "https://MyJantesv6.replit.app";
+  return "https://appmyjantes1.mytoolsgroup.eu";
 };
 
 const API_BASE = getApiBase();
